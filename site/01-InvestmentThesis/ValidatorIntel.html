@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpine Digital - Validator Intelligence</title>
+    <style>
+        :root {
+            --bg: #0b1526;
+            --surface: #101d32;
+            --surface2: #16263f;
+            --surface3: #1c3050;
+            --border: #1e3a62;
+            --border-glow: #3a7cc6;
+            --text: #c8daf0;
+            --text-dim: #6b8cb8;
+            --text-bright: #ffffff;
+            --accent: #2e7ec7;
+            --accent2: #4a9de8;
+            --accent3: #8cc8f5;
+            --ice: #b0daff;
+            --snow: #daeeff;
+            --success: #34d399;
+            --gradient-ice: linear-gradient(135deg, #1a4a80, #2e7ec7, #5eaeff);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --mono: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+            --sans: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .mountain-bg {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: 420px; z-index: 0; opacity: 0.3; pointer-events: none;
+        }
+        .mountain-bg svg { width: 100%; height: 100%; }
+
+        .container {
+            position: relative; z-index: 1;
+            max-width: 1400px; margin: 0 auto; padding: 24px;
+        }
+
+        header { margin-bottom: 48px; padding-top: 20px; }
+
+        .header-content {
+            display: flex; align-items: center; gap: 20px; margin-bottom: 8px;
+        }
+
+        .alpine-icon { width: 60px; height: 60px; flex-shrink: 0; }
+
+        .header-text h1 {
+            font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px;
+        }
+        .header-text h1 span { color: var(--text-dim); }
+        .header-text p { color: var(--text-dim); font-size: 14px; }
+
+        .badge-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+        .badge {
+            font-size: 12px; padding: 4px 12px;
+            background: var(--surface3); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--accent3);
+        }
+
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); margin-bottom: 24px;
+            position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 2px; background: var(--gradient-ice);
+        }
+
+        .card-header {
+            padding: 20px; border-bottom: 1px solid var(--border);
+            font-size: 18px; font-weight: 600; color: var(--text-bright);
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .card-content { padding: 20px; }
+
+        button {
+            padding: 10px 16px; border: none; border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            transition: all 0.2s; color: var(--text-bright);
+        }
+        .btn-primary { background: var(--gradient-ice); }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(46,126,199,0.3); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { background: var(--surface3); border-color: var(--border-glow); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-back { background: none; border: 1px solid var(--border); color: var(--accent3); padding: 6px 14px; }
+        .btn-back:hover { border-color: var(--border-glow); background: var(--surface2); }
+
+        .button-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* Search */
+        .search-bar {
+            display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+        }
+        .search-input {
+            flex: 1; min-width: 240px; padding: 10px 14px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text);
+            font-size: 14px; font-family: inherit;
+        }
+        .search-input:focus { outline: none; border-color: var(--border-glow); background: var(--surface3); }
+        .search-input::placeholder { color: var(--text-dim); opacity: 0.6; }
+
+        /* Filter pills */
+        .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+        .pill {
+            padding: 5px 12px; border-radius: 20px; font-size: 12px;
+            cursor: pointer; border: 1px solid var(--border);
+            background: var(--surface2); color: var(--text-dim); transition: all 0.2s;
+        }
+        .pill.active { background: var(--accent); border-color: var(--accent2); color: var(--text-bright); }
+        .pill:hover:not(.active) { border-color: var(--border-glow); color: var(--text); }
+
+        /* Validator Table */
+        .table-scroll { overflow-x: auto; }
+
+        table {
+            width: 100%; border-collapse: collapse;
+            background: var(--surface2); border-radius: var(--radius-sm); overflow: hidden;
+        }
+        thead th {
+            background: var(--surface3); padding: 10px 12px;
+            text-align: left; font-size: 12px; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--text-dim); font-weight: 600;
+            border-bottom: 1px solid var(--border); cursor: pointer;
+            user-select: none; white-space: nowrap;
+        }
+        thead th:hover { color: var(--accent3); }
+        thead th .sort-arrow { margin-left: 4px; font-size: 10px; }
+        thead th.sorted { color: var(--accent3); }
+
+        tbody td {
+            padding: 10px 12px; border-bottom: 1px solid rgba(30,58,98,0.4);
+            font-size: 13px; vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr { cursor: pointer; transition: background 0.15s; }
+        tbody tr:hover { background: rgba(46,126,199,0.08); }
+        tbody tr.selected { background: rgba(46,126,199,0.15); }
+
+        .rank-cell {
+            font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+            text-align: center; min-width: 40px;
+        }
+        .rank-cell.top10 { color: var(--accent3); font-weight: 700; }
+
+        .moniker-cell {
+            font-weight: 500; color: var(--text-bright); max-width: 240px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .mono-val {
+            font-family: var(--mono); font-size: 12px; text-align: right; white-space: nowrap;
+        }
+
+        .commission-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            font-size: 11px; font-family: var(--mono);
+        }
+        .commission-low { background: rgba(52,211,153,0.15); color: var(--success); }
+        .commission-med { background: rgba(123,154,184,0.15); color: var(--warning); }
+        .commission-high { background: rgba(248,113,113,0.15); color: var(--danger); }
+
+        .status-dot {
+            display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
+        }
+        .status-bonded { background: var(--success); }
+        .status-unbonded { background: var(--danger); }
+        .status-unbonding { background: var(--warning); }
+
+        /* Progress */
+        .progress-container { margin-top: 12px; }
+        .progress-bar {
+            height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: var(--gradient-ice); border-radius: 2px;
+            transition: width 0.3s; width: 0%;
+        }
+        .progress-text {
+            font-size: 12px; color: var(--text-dim); margin-top: 6px;
+            font-family: var(--mono);
+        }
+
+        /* Stat cards */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px;
+        }
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 640px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .stat-card {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 14px; text-align: center;
+        }
+        .stat-card .stat-value {
+            font-size: 20px; font-weight: 700; color: var(--text-bright);
+            font-family: var(--mono); margin-bottom: 2px;
+        }
+        .stat-card .stat-label {
+            font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-card.highlight {
+            border-color: var(--accent2);
+            background: linear-gradient(135deg, rgba(46,126,199,0.1), rgba(74,157,232,0.05));
+        }
+
+        /* Validator detail panel */
+        .detail-header {
+            display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .detail-header h2 {
+            font-size: 24px; color: var(--text-bright); font-weight: 700;
+        }
+        .detail-header .rank-badge {
+            background: var(--gradient-ice); padding: 4px 14px;
+            border-radius: 20px; font-size: 13px; font-weight: 600;
+            color: var(--text-bright); font-family: var(--mono);
+        }
+
+        .detail-meta {
+            display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;
+            font-size: 13px; color: var(--text-dim);
+        }
+        .detail-meta span { display: flex; align-items: center; gap: 6px; }
+
+        .addr-display {
+            font-family: var(--mono); font-size: 12px; color: var(--accent3);
+            background: var(--surface3); padding: 6px 12px; border-radius: 6px;
+            display: inline-block; word-break: break-all; margin-bottom: 16px;
+            cursor: pointer; border: 1px solid var(--border);
+        }
+        .addr-display:hover { border-color: var(--border-glow); }
+
+        /* Delegator distribution chart */
+        .dist-chart-container { margin: 20px 0; }
+        .dist-bar-bg {
+            height: 32px; background: var(--surface3); border-radius: 6px; overflow: hidden;
+            display: flex; position: relative;
+        }
+        .dist-segment {
+            height: 100%; transition: width 0.5s ease; position: relative;
+            min-width: 1px;
+        }
+        .dist-segment:hover { opacity: 0.8; }
+        .dist-labels {
+            display: flex; justify-content: space-between; margin-top: 6px;
+            font-size: 11px; color: var(--text-dim);
+        }
+
+        /* Memo generator */
+        .memo-section { margin-top: 24px; }
+        .memo-textarea {
+            width: 100%; min-height: 80px; padding: 12px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text);
+            font-family: var(--mono); font-size: 13px; resize: vertical;
+        }
+        .memo-textarea:focus { outline: none; border-color: var(--border-glow); background: var(--surface3); }
+        .memo-char-count { font-size: 11px; color: var(--text-dim); text-align: right; margin-top: 4px; }
+        .memo-preview {
+            background: var(--surface3); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 12px; margin-top: 12px;
+            font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+            max-height: 200px; overflow-y: auto;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; margin-top: 16px;
+        }
+        .page-info { font-size: 12px; color: var(--text-dim); font-family: var(--mono); }
+
+        .hidden { display: none !important; }
+
+        .security-notice {
+            margin-top: 32px; padding: 16px 20px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); font-size: 13px; color: var(--text-dim);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid var(--border); border-top-color: var(--accent3);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-overlay {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; padding: 40px; color: var(--text-dim); font-size: 14px;
+        }
+
+        /* Copy tooltip */
+        .copy-toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: var(--accent); color: var(--text-bright);
+            padding: 8px 16px; border-radius: var(--radius-sm);
+            font-size: 13px; opacity: 0; transition: opacity 0.3s;
+            pointer-events: none; z-index: 100;
+        }
+        .copy-toast.show { opacity: 1; }
+
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            td, th { padding: 6px 8px; font-size: 12px; }
+            .stat-card .stat-value { font-size: 16px; }
+            .detail-header h2 { font-size: 18px; }
+        }
+
+        /* ─── ALPINE DIGITAL MASTER NAV/BANNER/FOOTER ─── */
+        .alpine-nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;padding:0 32px;height:56px;background:rgba(11,21,38,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(30,58,98,0.3)}
+        .alpine-nav .nav-brand{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;color:#fff;text-decoration:none;padding:8px 0}
+        .alpine-nav .nav-brand svg:first-child{width:26px;height:26px;flex-shrink:0}
+        .alpine-nav .nav-brand-text{font-size:.9rem;font-weight:700;letter-spacing:.4px}
+        .alpine-nav .nav-brand-text em{font-style:normal;font-weight:300;color:#1a4a80}
+        .alpine-nav .nav-caret{width:10px;height:10px;margin-left:4px;transition:transform .2s}
+        .alpine-nav .nav-brand.open .nav-caret{transform:rotate(180deg)}
+        .alpine-nav .nav-right{margin-left:auto}
+        .alpine-nav .validator-link{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.68rem;color:var(--text-dim);text-decoration:none;padding:4px 12px;border-radius:14px;background:rgba(46,126,199,.06);border:1px solid rgba(46,126,199,.12);transition:all .2s}
+        .alpine-nav .validator-link:hover{color:var(--accent3);border-color:rgba(46,126,199,.3)}
+        .alpine-nav .validator-dot{width:5px;height:5px;border-radius:50%;background:var(--success);box-shadow:0 0 6px rgba(52,211,153,.4);animation:adpulse 2.5s ease-in-out infinite}
+        @keyframes adpulse{0%,100%{opacity:.5}50%{opacity:1}}
+        .ad-dropdown-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.3)}
+        .ad-dropdown-overlay.open{display:block}
+        .ad-dropdown{display:none;position:fixed;top:56px;left:0;z-index:190;width:340px;background:rgba(14,24,42,.96);backdrop-filter:blur(24px);border:1px solid rgba(30,58,98,.4);border-top:none;border-radius:0 0 12px 12px;box-shadow:0 16px 48px rgba(0,0,0,.5);padding:12px 0;max-height:calc(100vh - 56px);overflow-y:auto}
+        .ad-dropdown.open{display:block}
+        .ad-dropdown .dd-section{padding:0 8px}
+        .ad-dropdown .dd-section-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;background:none;border:none;color:var(--ice);font-family:var(--sans);font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-radius:8px;transition:background .15s}
+        .ad-dropdown .dd-section-btn:hover{background:rgba(30,58,98,.2)}
+        .ad-dropdown .dd-section-num{font-family:var(--mono);font-size:.6rem;color:var(--accent2);background:rgba(74,157,232,.08);border:1px solid rgba(74,157,232,.15);padding:2px 7px;border-radius:8px}
+        .ad-dropdown .dd-section-caret{margin-left:auto;font-size:.6rem;color:var(--text-dim);transition:transform .2s}
+        .ad-dropdown .dd-section.expanded .dd-section-caret{transform:rotate(90deg)}
+        .ad-dropdown .dd-tools{display:none;padding:2px 0 6px}
+        .ad-dropdown .dd-section.expanded .dd-tools{display:block}
+        .ad-dropdown .dd-tool-link{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 40px;color:var(--text);text-decoration:none;font-size:.8rem;font-weight:500;border-radius:8px;transition:all .15s;margin:0 8px}
+        .ad-dropdown .dd-tool-link:hover{background:rgba(46,126,199,.1);color:#fff}
+        .ad-dropdown .dd-tool-dot{width:5px;height:5px;border-radius:50%;background:var(--success);flex-shrink:0}
+        .ad-dropdown .dd-tool-dot.planned{background:var(--text-dim);opacity:.3}
+        .ad-dropdown .dd-tool-label{font-size:.6rem;color:var(--text-dim);margin-left:auto;font-family:var(--mono)}
+        .ad-dropdown .dd-divider{height:1px;background:rgba(30,58,98,.25);margin:6px 16px}
+        .alpine-banner{position:relative;width:100%;height:220px;overflow:hidden;margin-top:56px}
+        .alpine-banner img{width:100%;height:100%;object-fit:cover;object-position:center}
+        .alpine-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,21,38,0) 0%,rgba(11,21,38,0) 40%,rgba(11,21,38,.6) 70%,rgba(11,21,38,1) 100%)}
+        .alpine-footer{position:relative;z-index:1;text-align:center;padding:32px 40px 48px;border-top:1px solid rgba(30,58,98,.2);max-width:1080px;margin:0 auto}
+        .alpine-footer p{font-size:.78rem;color:var(--text-dim);line-height:1.8}
+        .alpine-footer strong{color:var(--accent3)}
+        .alpine-footer .ver{font-family:var(--mono);font-size:.65rem;color:rgba(107,140,184,.35);margin-top:8px}
+    </style>
+</head>
+<body>
+<!-- Alpine Digital Nav -->
+<nav class="alpine-nav">
+  <a class="nav-brand" href="../index.html" id="adNavBrand" onclick="adToggleDropdown(); return false;">
+    <svg viewBox="0 0 64 64" fill="none"><defs><linearGradient id="nG" x1="32" y1="56" x2="32" y2="4" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#081a3a"/><stop offset="30%" stop-color="#0f2e5e"/><stop offset="60%" stop-color="#2e7ec7"/><stop offset="85%" stop-color="#c8dff5"/><stop offset="100%" stop-color="#fff"/></linearGradient></defs><path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#nG)"/><path d="M32 4L25 18h14L32 4z" fill="#fff" opacity=".85"/><path d="M32 4L27 15h10L32 4z" fill="#fff" opacity=".95"/></svg>
+    <span class="nav-brand-text">ALPINE <em>DIGITAL</em></span>
+    <svg class="nav-caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 3.5 L5 6.5 L8 3.5"/></svg>
+  </a>
+  <div class="nav-right">
+    <a class="validator-link" href="https://validator.info/terra-classic/terravaloper12drl99s75jslgmk48v9fpqxqjadye2dfrgyasw" target="_blank" rel="noopener"><span class="validator-dot"></span><span>Validator Active</span></a>
+  </div>
+</nav>
+<div class="ad-dropdown-overlay" id="adDdOverlay" onclick="adToggleDropdown()"></div>
+<div class="ad-dropdown" id="adDropdown">
+  <div class="dd-section" data-section="thesis">
+    <button class="dd-section-btn" onclick="adToggleSection(this)"><span class="dd-section-num">01</span> Investment Thesis <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../01-InvestmentThesis/History.html"><span class="dd-tool-dot"></span> History of Terra Luna</a>
+      <a class="dd-tool-link" href="../01-InvestmentThesis/Emergence.html"><span class="dd-tool-dot"></span> The Emergence of LUNC</a>
+      <a class="dd-tool-link" href="../01-InvestmentThesis/Compelling.html"><span class="dd-tool-dot"></span> What Makes LUNC Compelling</a>
+      <a class="dd-tool-link" href="../01-InvestmentThesis/Catalysts.html"><span class="dd-tool-dot"></span> Key Catalysts</a>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="evaluation">
+    <button class="dd-section-btn" onclick="adToggleSection(this)"><span class="dd-section-num">02</span> Evaluation &amp; Scenario <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../02-EvaluationScenario/BinomialPricingModel.html"><span class="dd-tool-dot"></span> Binomial Pricing Model</a>
+      <div class="dd-tool-link" style="cursor:default;opacity:0.4"><span class="dd-tool-dot planned"></span> Monte Carlo Simulator <span class="dd-tool-label">planned</span></div>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="portfolio">
+    <button class="dd-section-btn" onclick="adToggleSection(this)"><span class="dd-section-num">03</span> Portfolio Management <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../03-PortfolioManagement/WalletAnalyzer.html"><span class="dd-tool-dot"></span> Portfolio Analyzer</a>
+      <a class="dd-tool-link" href="../04-Utilities/WalletScanner.html"><span class="dd-tool-dot"></span> Wallet Analyzer</a>
+      <a class="dd-tool-link" href="../03-PortfolioManagement/ModelPortfolios.html"><span class="dd-tool-dot"></span> Alpine Digital Model Portfolios</a>
+      <a class="dd-tool-link" href="../02-EvaluationScenario/ScenarioAnalysis.html"><span class="dd-tool-dot"></span> LUNC Profit Scenario Analysis</a>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="utilities">
+    <button class="dd-section-btn" onclick="adToggleSection(this)"><span class="dd-section-num">04</span> Utilities <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../04-Utilities/SeedGenerator.html"><span class="dd-tool-dot"></span> Wallet Generator</a>
+      <a class="dd-tool-link" href="../04-Utilities/WalletProviders.html"><span class="dd-tool-dot"></span> Wallet Providers</a>
+      <a class="dd-tool-link" href="../04-Utilities/DEXLinks.html"><span class="dd-tool-dot"></span> DEX Links</a>
+      <a class="dd-tool-link" href="../04-Utilities/CEXLinks.html"><span class="dd-tool-dot"></span> CEX Links</a>
+    </div>
+  </div>
+</div>
+<div class="alpine-banner"><img src="../Images/Background.jpg" alt=""></div>
+<!-- End Alpine Digital Nav -->
+    <div class="mountain-bg">
+        <svg viewBox="0 0 1440 420" preserveAspectRatio="none">
+            <defs>
+                <linearGradient id="mtnFar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1a3a6a" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#0c1829" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="mtnMid" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1e4a80" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#0c1829" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="mtnHorn" x1="0.5" y1="0" x2="0.5" y2="1">
+                    <stop offset="0%" stop-color="#4a9de8" stop-opacity="0.35"/>
+                    <stop offset="30%" stop-color="#1e4a80" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#0c1829" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="snowCap" x1="0.5" y1="0" x2="0.5" y2="1">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+                    <stop offset="100%" stop-color="#8cc8f5" stop-opacity="0.05"/>
+                </linearGradient>
+            </defs>
+            <path fill="url(#mtnFar)" d="M0,420 L0,310 L80,270 L160,290 L260,240 L340,260 L420,220 L500,250 L580,210 L660,230 L740,200 L820,225 L900,195 L980,220 L1060,190 L1140,215 L1220,200 L1300,230 L1380,210 L1440,240 L1440,420 Z"/>
+            <path fill="url(#mtnMid)" d="M0,420 L0,330 L100,280 L180,310 L280,250 L360,285 L450,230 L530,270 L600,220 L660,250 L700,210 L740,240 L800,200 L860,230 L940,180 L1020,220 L1100,190 L1180,230 L1260,210 L1340,250 L1440,220 L1440,420 Z"/>
+            <path fill="url(#mtnHorn)" d="M540,420 L620,260 L660,200 L690,140 L710,80 L720,30 L730,80 L750,140 L780,200 L820,260 L900,420 Z"/>
+            <path fill="url(#snowCap)" d="M690,140 L710,80 L720,30 L730,80 L750,140 L735,130 L720,100 L705,130 Z"/>
+            <path fill="url(#mtnMid)" opacity="0.6" d="M0,420 L100,340 L200,300 L320,320 L440,280 L540,300 L620,260 L540,420 Z"/>
+            <path fill="url(#mtnMid)" opacity="0.6" d="M900,420 L820,260 L920,290 L1020,260 L1120,280 L1220,260 L1320,290 L1440,270 L1440,420 Z"/>
+            <circle cx="680" cy="60" r="1.2" fill="#fff" opacity="0.4"/>
+            <circle cx="760" cy="50" r="0.8" fill="#fff" opacity="0.3"/>
+            <circle cx="650" cy="100" r="1" fill="#fff" opacity="0.25"/>
+            <circle cx="790" cy="90" r="0.8" fill="#fff" opacity="0.2"/>
+            <circle cx="720" cy="15" r="1.5" fill="#8cc8f5" opacity="0.5"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <svg class="alpine-icon" viewBox="0 0 64 64" fill="none">
+                    <defs>
+                        <linearGradient id="aGrad" x1="16" y1="56" x2="48" y2="8">
+                            <stop offset="0%" stop-color="#0f2e5e"/>
+                            <stop offset="40%" stop-color="#2e7ec7"/>
+                            <stop offset="100%" stop-color="#8cc8f5"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#aGrad)"/>
+                    <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="none" stroke="#a3d5ff" stroke-width="1" opacity="0.4"/>
+                    <path d="M22 44l10-20 10 20" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                    <path d="M32 4L25 18h14L32 4z" fill="#fff" opacity="0.5"/>
+                </svg>
+                <div class="header-text">
+                    <h1>ALPINE <span>DIGITAL</span></h1>
+                    <p>Validator Intelligence</p>
+                </div>
+            </div>
+            <p style="color: var(--text-dim); font-size: 13px; margin-top: 12px;">Luna Classic Validator Analytics &amp; Delegator Outreach</p>
+            <div class="badge-group">
+                <div class="badge">Validators</div>
+                <div class="badge">Delegators</div>
+                <div class="badge">Staking</div>
+                <div class="badge">Outreach</div>
+            </div>
+        </header>
+
+        <!-- ═══ VIEW: VALIDATOR LIST ═══ -->
+        <div id="viewList">
+            <div class="card">
+                <div class="card-header">
+                    Validator Set
+                    <div class="button-group">
+                        <button class="btn-secondary btn-sm" onclick="fetchValidators()"><span class="spinner hidden" id="refreshSpinner"></span> Refresh</button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="search-bar">
+                        <input class="search-input" type="text" id="searchInput" placeholder="Search validators by name or address..." oninput="filterValidators()">
+                        <span class="page-info" id="validatorCount">—</span>
+                    </div>
+                    <div class="filter-pills">
+                        <div class="pill active" data-filter="bonded" onclick="toggleFilter(this)">Active (Bonded)</div>
+                        <div class="pill" data-filter="unbonded" onclick="toggleFilter(this)">Inactive</div>
+                        <div class="pill" data-filter="jailed" onclick="toggleFilter(this)">Jailed</div>
+                    </div>
+
+                    <div class="progress-container" id="listProgress">
+                        <div class="progress-bar"><div class="progress-fill" id="listProgressFill"></div></div>
+                        <div class="progress-text" id="listProgressText">Fetching validators...</div>
+                    </div>
+
+                    <div class="table-scroll" style="margin-top: 16px;">
+                        <table id="validatorTable" class="hidden">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortBy('rank')" id="thRank" class="sorted">Rank <span class="sort-arrow">▲</span></th>
+                                    <th onclick="sortBy('moniker')">Name <span class="sort-arrow"></span></th>
+                                    <th onclick="sortBy('tokens')" style="text-align:right;">Staked LUNC <span class="sort-arrow"></span></th>
+                                    <th onclick="sortBy('votingPower')" style="text-align:right;">Voting Power <span class="sort-arrow"></span></th>
+                                    <th onclick="sortBy('commission')" style="text-align:center;">Commission <span class="sort-arrow"></span></th>
+                                    <th onclick="sortBy('delegatorCount')" style="text-align:right;">Delegators <span class="sort-arrow"></span></th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="validatorBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination" id="listPagination"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ VIEW: VALIDATOR DETAIL ═══ -->
+        <div id="viewDetail" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <button class="btn-back" onclick="showList()">← Back to List</button>
+                    <div class="button-group">
+                        <button class="btn-secondary btn-sm" onclick="exportDelegatorsCSV()">Export Delegators CSV</button>
+                        <button class="btn-secondary btn-sm" onclick="toggleMemoPanel()">Memo Outreach</button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div id="detailContent">
+                        <div class="loading-overlay"><div class="spinner"></div> Loading validator details...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memo Outreach Panel -->
+            <div class="card hidden" id="memoCard">
+                <div class="card-header">Memo Transaction Generator</div>
+                <div class="card-content">
+                    <div class="memo-section">
+                        <label style="font-size:14px; font-weight:600; color:var(--text-bright); display:block; margin-bottom:8px;">Outreach Message (max 256 chars)</label>
+                        <textarea class="memo-textarea" id="memoText" placeholder="Check out Alpine Digital Validator! Reliable infrastructure, competitive commission. Learn about WESO at weso.world" maxlength="256" oninput="updateMemoCount()"></textarea>
+                        <div class="memo-char-count"><span id="memoCharCount">0</span>/256</div>
+
+                        <div style="display:flex; gap:12px; align-items:end; flex-wrap:wrap; margin-top:16px;">
+                            <div style="flex:1; min-width:180px;">
+                                <label style="font-size:12px; color:var(--text-dim); display:block; margin-bottom:4px;">Send Amount (uluna)</label>
+                                <input type="number" id="memoAmount" value="1" min="1" style="width:100%; padding:8px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-family:var(--mono); font-size:13px;">
+                            </div>
+                            <div style="flex:1; min-width:180px;">
+                                <label style="font-size:12px; color:var(--text-dim); display:block; margin-bottom:4px;">Target Delegators</label>
+                                <select id="memoTarget" style="width:100%; padding:8px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px;">
+                                    <option value="all">All Delegators</option>
+                                    <option value="top10">Top 10 by Stake</option>
+                                    <option value="top25">Top 25 by Stake</option>
+                                    <option value="top50">Top 50 by Stake</option>
+                                    <option value="top100">Top 100 by Stake</option>
+                                </select>
+                            </div>
+                            <button class="btn-primary" onclick="generateMemoTxs()">Generate Transactions</button>
+                            <button class="btn-secondary" onclick="exportMemoJSON()">Export as JSON</button>
+                        </div>
+
+                        <div class="memo-preview hidden" id="memoPreview"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="security-notice">
+            <strong>Security Notice:</strong> All data is fetched read-only from the public Terra Classic LCD node. No private keys or signing involved. Memo transactions are generated as unsigned JSON for external broadcast. No data is sent to Alpine Digital servers.
+        </div>
+    </div>
+
+    <div class="copy-toast" id="copyToast">Copied to clipboard</div>
+
+    <script>
+    // ─── CONFIG ───
+    const LCD = 'https://terra-classic-lcd.publicnode.com';
+    const PAGE_SIZE = 50;
+    const ULUNA_DENOM = 'uluna';
+
+    // ─── STATE ───
+    let allValidators = [];
+    let filteredValidators = [];
+    let totalBondedTokens = 0;
+    let currentSort = { key: 'rank', asc: true };
+    let currentPage = 0;
+    let activeFilters = new Set(['bonded']);
+    let selectedValidator = null;
+    let currentDelegators = [];
+
+    // ─── FORMATTING ───
+    function fmtLunc(uluna) {
+        const lunc = uluna / 1e6;
+        if (lunc >= 1e9) return (lunc / 1e9).toFixed(2) + 'B';
+        if (lunc >= 1e6) return (lunc / 1e6).toFixed(2) + 'M';
+        if (lunc >= 1e3) return (lunc / 1e3).toFixed(1) + 'K';
+        return lunc.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+
+    function fmtLuncFull(uluna) {
+        return (uluna / 1e6).toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+
+    function fmtPct(ratio) {
+        return (ratio * 100).toFixed(2) + '%';
+    }
+
+    function fmtNum(n) {
+        return n.toLocaleString('en-US');
+    }
+
+    function truncAddr(addr) {
+        if (!addr || addr.length < 16) return addr;
+        return addr.slice(0, 12) + '...' + addr.slice(-6);
+    }
+
+    // ─── API HELPERS ───
+    // Global request queue to prevent hammering the LCD node
+    let activeRequests = 0;
+    const MAX_CONCURRENT = 2;
+    const requestQueue = [];
+    let currentAbort = null; // AbortController for cancelling in-flight delegator fetches
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    async function throttledFetch(url, signal) {
+        // Wait if too many concurrent requests
+        while (activeRequests >= MAX_CONCURRENT) {
+            await sleep(100);
+            if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+        }
+        activeRequests++;
+        try {
+            const resp = await fetch(url, { signal });
+            return resp;
+        } finally {
+            activeRequests--;
+        }
+    }
+
+    async function fetchWithRetry(url, signal, maxRetries = 3) {
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+            try {
+                const resp = await throttledFetch(url, signal);
+                if (resp.status === 429) {
+                    // Rate limited — back off
+                    const waitMs = Math.min(2000 * Math.pow(2, attempt), 15000);
+                    console.warn(`[LCD] Rate limited, waiting ${waitMs}ms (attempt ${attempt + 1})`);
+                    await sleep(waitMs);
+                    continue;
+                }
+                if (!resp.ok) {
+                    if (attempt < maxRetries) {
+                        await sleep(1000 * (attempt + 1));
+                        continue;
+                    }
+                    throw new Error(`HTTP ${resp.status}`);
+                }
+                return resp;
+            } catch (err) {
+                if (err.name === 'AbortError') throw err;
+                if (attempt < maxRetries) {
+                    await sleep(1000 * (attempt + 1));
+                    continue;
+                }
+                throw err;
+            }
+        }
+    }
+
+    async function fetchAllPages(url, resultKey, progressCb, signal) {
+        let results = [];
+        let nextKey = null;
+        let page = 0;
+        do {
+            if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+
+            let fetchUrl = url + (url.includes('?') ? '&' : '?') + 'pagination.limit=100';
+            if (nextKey) fetchUrl += '&pagination.key=' + encodeURIComponent(nextKey);
+            if (page === 0) fetchUrl += '&pagination.count_total=true';
+
+            const resp = await fetchWithRetry(fetchUrl, signal);
+            const data = await resp.json();
+
+            const items = data[resultKey] || [];
+            results = results.concat(items);
+            nextKey = data.pagination?.next_key || null;
+            page++;
+
+            const total = parseInt(data.pagination?.total) || results.length;
+            if (progressCb) progressCb(results.length, total, page);
+
+            // Small delay between pages to avoid rate limits
+            if (nextKey) await sleep(150);
+
+        } while (nextKey);
+        return results;
+    }
+
+    // ─── FETCH VALIDATORS ───
+    async function fetchValidators() {
+        const fill = document.getElementById('listProgressFill');
+        const text = document.getElementById('listProgressText');
+        const prog = document.getElementById('listProgress');
+        prog.classList.remove('hidden');
+        fill.style.width = '10%';
+        text.textContent = 'Fetching validators...';
+
+        try {
+            // Fetch bonded validators only (most useful, keeps load fast)
+            const bonded = await fetchAllPages(
+                LCD + '/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED',
+                'validators',
+                (loaded, total) => {
+                    fill.style.width = Math.min(60, (loaded / Math.max(total, 1)) * 60) + '%';
+                    text.textContent = `Loaded ${loaded} bonded validators...`;
+                }
+            );
+
+            fill.style.width = '65%';
+            text.textContent = 'Fetching inactive validators...';
+
+            // Fetch unbonded + unbonding (best effort, don't block on failure)
+            let unbonded = [];
+            try {
+                unbonded = await fetchAllPages(
+                    LCD + '/cosmos/staking/v1beta1/validators?status=BOND_STATUS_UNBONDED',
+                    'validators',
+                    (loaded, total) => {
+                        fill.style.width = (65 + Math.min(15, (loaded / Math.max(total, 1)) * 15)) + '%';
+                    }
+                );
+            } catch(e) { console.warn('Unbonded fetch failed:', e); }
+
+            let unbonding = [];
+            try {
+                unbonding = await fetchAllPages(
+                    LCD + '/cosmos/staking/v1beta1/validators?status=BOND_STATUS_UNBONDING',
+                    'validators',
+                    (loaded, total) => {
+                        fill.style.width = (80 + Math.min(5, (loaded / Math.max(total, 1)) * 5)) + '%';
+                    }
+                );
+            } catch(e) { console.warn('Unbonding fetch failed:', e); }
+
+            fill.style.width = '85%';
+            text.textContent = 'Processing...';
+
+            // Merge and rank
+            const all = [...bonded, ...unbonded, ...unbonding];
+
+            // Fetch staking pool for total bonded
+            try {
+                const poolResp = await fetch(LCD + '/cosmos/staking/v1beta1/pool');
+                if (poolResp.ok) {
+                    const pool = await poolResp.json();
+                    totalBondedTokens = parseInt(pool.pool?.bonded_tokens) || 0;
+                }
+            } catch(e) { console.warn('Pool fetch failed:', e); }
+
+            // Process validators
+            allValidators = all.map(v => {
+                const tokens = parseInt(v.tokens) || 0;
+                const commission = parseFloat(v.commission?.commission_rates?.rate) || 0;
+                const status = v.status === 'BOND_STATUS_BONDED' ? 'bonded'
+                    : v.status === 'BOND_STATUS_UNBONDING' ? 'unbonding' : 'unbonded';
+                return {
+                    address: v.operator_address,
+                    moniker: v.description?.moniker || 'Unknown',
+                    identity: v.description?.identity || '',
+                    website: v.description?.website || '',
+                    details: v.description?.details || '',
+                    tokens,
+                    commission,
+                    status,
+                    jailed: v.jailed || false,
+                    votingPower: totalBondedTokens > 0 ? tokens / totalBondedTokens : 0,
+                    delegatorCount: 0, // Will be updated on detail view
+                    rank: 0,
+                };
+            });
+
+            // Sort by tokens desc and assign rank
+            allValidators.sort((a, b) => b.tokens - a.tokens);
+            allValidators.forEach((v, i) => v.rank = i + 1);
+
+            fill.style.width = '100%';
+            text.textContent = `Loaded ${allValidators.length} validators`;
+            setTimeout(() => prog.classList.add('hidden'), 1500);
+
+            document.getElementById('validatorTable').classList.remove('hidden');
+            filterValidators();
+
+        } catch (err) {
+            text.textContent = 'Error: ' + err.message;
+            fill.style.width = '0%';
+        }
+    }
+
+    // ─── FILTER & SORT ───
+    function toggleFilter(el) {
+        const filter = el.dataset.filter;
+        if (el.classList.contains('active')) {
+            el.classList.remove('active');
+            activeFilters.delete(filter);
+        } else {
+            el.classList.add('active');
+            activeFilters.add(filter);
+        }
+        filterValidators();
+    }
+
+    function filterValidators() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+        filteredValidators = allValidators.filter(v => {
+            // Status filter
+            let statusMatch = false;
+            if (activeFilters.size === 0) statusMatch = true;
+            if (activeFilters.has('bonded') && v.status === 'bonded' && !v.jailed) statusMatch = true;
+            if (activeFilters.has('unbonded') && (v.status === 'unbonded' || v.status === 'unbonding') && !v.jailed) statusMatch = true;
+            if (activeFilters.has('jailed') && v.jailed) statusMatch = true;
+            if (!statusMatch) return false;
+
+            // Text search
+            if (query) {
+                return v.moniker.toLowerCase().includes(query) ||
+                       v.address.toLowerCase().includes(query);
+            }
+            return true;
+        });
+
+        // Apply sort
+        applySortToFiltered();
+        currentPage = 0;
+        renderValidatorTable();
+    }
+
+    function sortBy(key) {
+        if (currentSort.key === key) {
+            currentSort.asc = !currentSort.asc;
+        } else {
+            currentSort.key = key;
+            currentSort.asc = key === 'moniker' ? true : (key === 'rank');
+        }
+
+        // Update header classes
+        document.querySelectorAll('#validatorTable thead th').forEach(th => {
+            th.classList.remove('sorted');
+            th.querySelector('.sort-arrow').textContent = '';
+        });
+        const thMap = { rank: 'thRank' };
+        const activeTh = document.querySelector(`#validatorTable thead th:nth-child(${
+            { rank: 1, moniker: 2, tokens: 3, votingPower: 4, commission: 5, delegatorCount: 6 }[key]
+        })`);
+        if (activeTh) {
+            activeTh.classList.add('sorted');
+            activeTh.querySelector('.sort-arrow').textContent = currentSort.asc ? '▲' : '▼';
+        }
+
+        applySortToFiltered();
+        currentPage = 0;
+        renderValidatorTable();
+    }
+
+    function applySortToFiltered() {
+        const { key, asc } = currentSort;
+        filteredValidators.sort((a, b) => {
+            let va = a[key], vb = b[key];
+            if (key === 'moniker') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+            if (va < vb) return asc ? -1 : 1;
+            if (va > vb) return asc ? 1 : -1;
+            return 0;
+        });
+    }
+
+    function renderValidatorTable() {
+        const tbody = document.getElementById('validatorBody');
+        const start = currentPage * PAGE_SIZE;
+        const pageItems = filteredValidators.slice(start, start + PAGE_SIZE);
+
+        document.getElementById('validatorCount').textContent =
+            `${filteredValidators.length} of ${allValidators.length} validators`;
+
+        let html = '';
+        pageItems.forEach(v => {
+            const commClass = v.commission <= 0.05 ? 'commission-low'
+                : v.commission <= 0.10 ? 'commission-med' : 'commission-high';
+            const statusClass = v.jailed ? 'status-unbonded'
+                : v.status === 'bonded' ? 'status-bonded'
+                : v.status === 'unbonding' ? 'status-unbonding' : 'status-unbonded';
+            const statusLabel = v.jailed ? 'Jailed'
+                : v.status === 'bonded' ? 'Active' : v.status === 'unbonding' ? 'Unbonding' : 'Inactive';
+
+            html += `<tr onclick="selectValidator('${v.address}')">
+                <td class="rank-cell ${v.rank <= 10 ? 'top10' : ''}">${v.rank}</td>
+                <td class="moniker-cell" title="${v.moniker}">${escHtml(v.moniker)}</td>
+                <td class="mono-val">${fmtLunc(v.tokens)}</td>
+                <td class="mono-val">${fmtPct(v.votingPower)}</td>
+                <td style="text-align:center;"><span class="commission-badge ${commClass}">${(v.commission * 100).toFixed(1)}%</span></td>
+                <td class="mono-val">${v.delegatorCount > 0 ? fmtNum(v.delegatorCount) : '—'}</td>
+                <td><span class="status-dot ${statusClass}"></span>${statusLabel}</td>
+            </tr>`;
+        });
+
+        tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center; color:var(--text-dim); padding:24px;">No validators match your search.</td></tr>';
+
+        // Pagination
+        const totalPages = Math.ceil(filteredValidators.length / PAGE_SIZE);
+        const pag = document.getElementById('listPagination');
+        if (totalPages <= 1) { pag.innerHTML = ''; return; }
+        pag.innerHTML = `
+            <button class="btn-secondary btn-sm" onclick="changePage(-1)" ${currentPage === 0 ? 'disabled style="opacity:0.4"' : ''}>← Prev</button>
+            <span class="page-info">Page ${currentPage + 1} of ${totalPages}</span>
+            <button class="btn-secondary btn-sm" onclick="changePage(1)" ${currentPage >= totalPages - 1 ? 'disabled style="opacity:0.4"' : ''}>Next →</button>
+        `;
+    }
+
+    function changePage(dir) {
+        const totalPages = Math.ceil(filteredValidators.length / PAGE_SIZE);
+        currentPage = Math.max(0, Math.min(totalPages - 1, currentPage + dir));
+        renderValidatorTable();
+    }
+
+    function escHtml(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    // ─── VALIDATOR DETAIL ───
+    let delegatorPage = 0;
+    const DEL_PAGE_SIZE = 100;
+
+    async function selectValidator(addr) {
+        // Cancel any in-flight delegator fetch
+        if (currentAbort) { currentAbort.abort(); currentAbort = null; }
+
+        selectedValidator = allValidators.find(v => v.address === addr);
+        if (!selectedValidator) return;
+
+        document.getElementById('viewList').classList.add('hidden');
+        document.getElementById('viewDetail').classList.remove('hidden');
+        document.getElementById('memoCard').classList.add('hidden');
+
+        const detail = document.getElementById('detailContent');
+        detail.innerHTML = '<div class="loading-overlay"><div class="spinner"></div> Loading delegator data...</div>';
+
+        currentAbort = new AbortController();
+        const signal = currentAbort.signal;
+
+        try {
+            currentDelegators = [];
+            const delegations = await fetchAllPages(
+                LCD + `/cosmos/staking/v1beta1/validators/${addr}/delegations`,
+                'delegation_responses',
+                (loaded, total) => {
+                    if (signal.aborted) return;
+                    detail.innerHTML = `<div class="loading-overlay"><div class="spinner"></div> Loading delegators: ${fmtNum(loaded)}${total > 0 ? ' / ' + fmtNum(total) : ''}...</div>`;
+                },
+                signal
+            );
+
+            if (signal.aborted) return;
+
+            currentDelegators = delegations.map(d => ({
+                address: d.delegation?.delegator_address || '',
+                shares: parseFloat(d.delegation?.shares) || 0,
+                amount: parseInt(d.balance?.amount) || 0,
+            })).sort((a, b) => b.amount - a.amount);
+
+            selectedValidator.delegatorCount = currentDelegators.length;
+            delegatorPage = 0;
+            renderDetail();
+
+        } catch (err) {
+            if (err.name === 'AbortError') return; // User navigated away, ignore
+            detail.innerHTML = `<div class="loading-overlay" style="color:var(--danger);">Error loading delegators: ${err.message}<br><br><button class="btn-secondary btn-sm" onclick="selectValidator('${addr}')">Retry</button></div>`;
+        }
+    }
+
+    function renderDetail() {
+        const v = selectedValidator;
+        const dels = currentDelegators;
+        const totalStaked = dels.reduce((s, d) => s + d.amount, 0);
+
+        // Concentration metrics
+        const top1Pct = dels.length > 0 ? dels[0].amount / totalStaked : 0;
+        const top10Stake = dels.slice(0, 10).reduce((s, d) => s + d.amount, 0);
+        const top10Pct = totalStaked > 0 ? top10Stake / totalStaked : 0;
+        const top25Stake = dels.slice(0, 25).reduce((s, d) => s + d.amount, 0);
+        const top25Pct = totalStaked > 0 ? top25Stake / totalStaked : 0;
+
+        // Herfindahl index (concentration metric)
+        let herfindahl = 0;
+        if (totalStaked > 0) dels.forEach(d => { const share = d.amount / totalStaked; herfindahl += share * share; });
+        const effectiveDelegators = herfindahl > 0 ? Math.round(1 / herfindahl) : 0;
+
+        // Size buckets
+        const buckets = [
+            { label: '> 1B LUNC', min: 1e15, count: 0, total: 0, color: '#1a4a80' },
+            { label: '100M-1B', min: 1e14, count: 0, total: 0, color: '#2e7ec7' },
+            { label: '10M-100M', min: 1e13, count: 0, total: 0, color: '#4a9de8' },
+            { label: '1M-10M', min: 1e12, count: 0, total: 0, color: '#5eaeff' },
+            { label: '100K-1M', min: 1e11, count: 0, total: 0, color: '#8cc8f5' },
+            { label: '< 100K', min: 0, count: 0, total: 0, color: '#b0daff' },
+        ];
+        dels.forEach(d => {
+            for (const b of buckets) {
+                if (d.amount >= b.min) { b.count++; b.total += d.amount; break; }
+            }
+        });
+
+        const commClass = v.commission <= 0.05 ? 'commission-low' : v.commission <= 0.10 ? 'commission-med' : 'commission-high';
+        const statusClass = v.jailed ? 'status-unbonded' : v.status === 'bonded' ? 'status-bonded' : 'status-unbonded';
+        const statusLabel = v.jailed ? 'Jailed' : v.status === 'bonded' ? 'Active' : 'Inactive';
+
+        let html = `
+            <div class="detail-header">
+                <h2>${escHtml(v.moniker)}</h2>
+                <span class="rank-badge">#${v.rank}</span>
+                <span class="commission-badge ${commClass}" style="font-size:13px;">${(v.commission * 100).toFixed(1)}% commission</span>
+                <span><span class="status-dot ${statusClass}"></span>${statusLabel}</span>
+            </div>
+            <div class="addr-display" onclick="copyAddr('${v.address}')" title="Click to copy">${v.address}</div>
+            ${v.website ? `<div class="detail-meta"><span>&#127760; <a href="${escHtml(v.website)}" target="_blank" style="color:var(--accent3);">${escHtml(v.website)}</a></span></div>` : ''}
+            ${v.details ? `<p style="font-size:13px; color:var(--text-dim); margin-bottom:20px;">${escHtml(v.details)}</p>` : ''}
+
+            <div class="stats-grid">
+                <div class="stat-card highlight">
+                    <div class="stat-value">${fmtLunc(v.tokens)}</div>
+                    <div class="stat-label">Total Staked</div>
+                </div>
+                <div class="stat-card highlight">
+                    <div class="stat-value">${fmtNum(dels.length)}</div>
+                    <div class="stat-label">Delegators</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${fmtPct(v.votingPower)}</div>
+                    <div class="stat-label">Voting Power</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${fmtNum(effectiveDelegators)}</div>
+                    <div class="stat-label">Effective Delegators</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${fmtPct(top1Pct)}</div>
+                    <div class="stat-label">Top 1 Concentration</div>
+                </div>
+            </div>
+
+            <!-- Concentration Bar -->
+            <h4 style="font-size:13px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Stake Concentration</h4>
+            <div style="display:flex; gap:24px; margin-bottom:24px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:12px; color:var(--text-dim); margin-bottom:4px;">Top 10 hold ${fmtPct(top10Pct)}</div>
+                    <div class="dist-bar-bg">
+                        <div class="dist-segment" style="width:${top10Pct * 100}%; background:var(--accent);"></div>
+                    </div>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:12px; color:var(--text-dim); margin-bottom:4px;">Top 25 hold ${fmtPct(top25Pct)}</div>
+                    <div class="dist-bar-bg">
+                        <div class="dist-segment" style="width:${top25Pct * 100}%; background:var(--accent2);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bucket Breakdown -->
+            <h4 style="font-size:13px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Delegator Size Distribution</h4>
+            <div class="dist-bar-bg" style="margin-bottom:8px;">
+        `;
+
+        buckets.forEach(b => {
+            const pct = totalStaked > 0 ? (b.total / totalStaked) * 100 : 0;
+            if (pct > 0) {
+                html += `<div class="dist-segment" style="width:${pct}%; background:${b.color};" title="${b.label}: ${b.count} delegators, ${fmtLunc(b.total)} LUNC (${pct.toFixed(1)}%)"></div>`;
+            }
+        });
+
+        html += `</div><div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px;">`;
+        buckets.forEach(b => {
+            html += `<div style="display:flex; align-items:center; gap:6px; font-size:12px;">
+                <div style="width:10px; height:10px; border-radius:50%; background:${b.color};"></div>
+                <span style="color:var(--text-dim);">${b.label}: ${b.count} (${fmtLunc(b.total)})</span>
+            </div>`;
+        });
+        html += `</div>`;
+
+        // Paginated delegator table
+        html += `<div id="delegatorTableContainer"></div>`;
+
+        document.getElementById('detailContent').innerHTML = html;
+        renderDelegatorPage();
+    }
+
+    function renderDelegatorPage() {
+        const container = document.getElementById('delegatorTableContainer');
+        if (!container) return;
+
+        const dels = currentDelegators;
+        const totalStaked = dels.reduce((s, d) => s + d.amount, 0);
+        const totalPages = Math.max(1, Math.ceil(dels.length / DEL_PAGE_SIZE));
+        delegatorPage = Math.max(0, Math.min(delegatorPage, totalPages - 1));
+
+        const start = delegatorPage * DEL_PAGE_SIZE;
+        const end = Math.min(start + DEL_PAGE_SIZE, dels.length);
+        const pageDels = dels.slice(start, end);
+
+        // Compute cumulative % up to start of this page
+        let cumPctBefore = 0;
+        for (let i = 0; i < start; i++) {
+            cumPctBefore += totalStaked > 0 ? dels[i].amount / totalStaked : 0;
+        }
+
+        let html = `
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                <h4 style="font-size:13px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin:0;">Delegator Breakdown (${fmtNum(dels.length)} total)</h4>
+                <span class="page-info">Showing ${fmtNum(start + 1)}–${fmtNum(end)} of ${fmtNum(dels.length)}</span>
+            </div>
+            <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:40px;">#</th>
+                        <th>Delegator Address</th>
+                        <th style="text-align:right;">Staked LUNC</th>
+                        <th style="text-align:right;">% of Validator</th>
+                        <th style="text-align:right;">Cumulative %</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        let cumPct = cumPctBefore;
+        pageDels.forEach((d, idx) => {
+            const globalIdx = start + idx;
+            const pct = totalStaked > 0 ? d.amount / totalStaked : 0;
+            cumPct += pct;
+            const isWhale = pct > 0.05;
+            html += `<tr>
+                <td class="rank-cell ${globalIdx < 10 ? 'top10' : ''}">${globalIdx + 1}</td>
+                <td class="mono-val" style="text-align:left; cursor:pointer; color:var(--accent3);" onclick="copyAddr('${d.address}')" title="Click to copy full address: ${d.address}">${truncAddr(d.address)}</td>
+                <td class="mono-val">${fmtLuncFull(d.amount)}</td>
+                <td class="mono-val" ${isWhale ? 'style="color:var(--accent3); font-weight:600;"' : ''}>${fmtPct(pct)}</td>
+                <td class="mono-val">${fmtPct(cumPct)}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+
+        // Pagination controls
+        if (totalPages > 1) {
+            html += `<div class="pagination">
+                <button class="btn-secondary btn-sm" onclick="delPageNav(0)" ${delegatorPage === 0 ? 'disabled style="opacity:0.4"' : ''}>First</button>
+                <button class="btn-secondary btn-sm" onclick="delPageNav(${delegatorPage - 1})" ${delegatorPage === 0 ? 'disabled style="opacity:0.4"' : ''}>&#8592; Prev</button>
+                <span class="page-info">Page ${delegatorPage + 1} of ${totalPages}</span>
+                <button class="btn-secondary btn-sm" onclick="delPageNav(${delegatorPage + 1})" ${delegatorPage >= totalPages - 1 ? 'disabled style="opacity:0.4"' : ''}>Next &#8594;</button>
+                <button class="btn-secondary btn-sm" onclick="delPageNav(${totalPages - 1})" ${delegatorPage >= totalPages - 1 ? 'disabled style="opacity:0.4"' : ''}>Last</button>
+            </div>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    function delPageNav(page) {
+        delegatorPage = page;
+        renderDelegatorPage();
+        // Scroll delegator table into view
+        const container = document.getElementById('delegatorTableContainer');
+        if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showList() {
+        // Cancel any in-flight delegator fetch
+        if (currentAbort) { currentAbort.abort(); currentAbort = null; }
+        document.getElementById('viewList').classList.remove('hidden');
+        document.getElementById('viewDetail').classList.add('hidden');
+        renderValidatorTable(); // Refresh any updated delegator counts
+    }
+
+    // ─── CLIPBOARD ───
+    function copyAddr(addr) {
+        navigator.clipboard.writeText(addr).then(() => {
+            const toast = document.getElementById('copyToast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1500);
+        });
+    }
+
+    // ─── EXPORT DELEGATORS CSV ───
+    function exportDelegatorsCSV() {
+        if (!selectedValidator || currentDelegators.length === 0) return;
+        const v = selectedValidator;
+        const totalStaked = currentDelegators.reduce((s, d) => s + d.amount, 0);
+
+        let csv = `Validator,${v.moniker}\nAddress,${v.address}\nRank,${v.rank}\nTotal Staked,${fmtLuncFull(v.tokens)}\nDelegators,${currentDelegators.length}\n\n`;
+        csv += 'Rank,Delegator Address,Staked LUNC,Staked uluna,% of Validator\n';
+
+        currentDelegators.forEach((d, i) => {
+            const pct = totalStaked > 0 ? (d.amount / totalStaked * 100).toFixed(4) : '0';
+            csv += `${i + 1},${d.address},${(d.amount / 1e6).toFixed(0)},${d.amount},${pct}%\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `delegators_${v.moniker.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+    }
+
+    // ─── MEMO TRANSACTION GENERATOR ───
+    function toggleMemoPanel() {
+        document.getElementById('memoCard').classList.toggle('hidden');
+    }
+
+    function updateMemoCount() {
+        document.getElementById('memoCharCount').textContent = document.getElementById('memoText').value.length;
+    }
+
+    function getTargetDelegators() {
+        const target = document.getElementById('memoTarget').value;
+        const n = { all: currentDelegators.length, top10: 10, top25: 25, top50: 50, top100: 100 }[target];
+        return currentDelegators.slice(0, Math.min(n, currentDelegators.length));
+    }
+
+    function generateMemoTxs() {
+        const memo = document.getElementById('memoText').value.trim();
+        if (!memo) { alert('Please enter an outreach message.'); return; }
+        const amount = parseInt(document.getElementById('memoAmount').value) || 1;
+        const targets = getTargetDelegators();
+
+        if (targets.length === 0) { alert('No delegators to target.'); return; }
+
+        const txs = targets.map((d, i) => ({
+            index: i + 1,
+            to: d.address,
+            stakedLunc: (d.amount / 1e6).toFixed(0),
+            msg: {
+                '@type': '/cosmos.bank.v1beta1.MsgSend',
+                from_address: '<YOUR_SENDER_ADDRESS>',
+                to_address: d.address,
+                amount: [{ denom: ULUNA_DENOM, amount: String(amount) }],
+            },
+            memo: memo,
+        }));
+
+        const preview = document.getElementById('memoPreview');
+        preview.classList.remove('hidden');
+        preview.innerHTML = `<strong style="color:var(--accent3);">${txs.length} memo transactions generated</strong><br><br>` +
+            `<strong>Memo:</strong> ${escHtml(memo)}<br>` +
+            `<strong>Amount:</strong> ${amount} uluna per tx<br>` +
+            `<strong>Total cost:</strong> ${fmtLuncFull(amount * txs.length * 1e0)} uluna (${(amount * txs.length / 1e6).toFixed(6)} LUNC + gas)<br><br>` +
+            `<strong>Sample (first 3):</strong><br>` +
+            txs.slice(0, 3).map(t =>
+                `#${t.index} → ${truncAddr(t.to)} (staked: ${fmtNum(parseInt(t.stakedLunc))} LUNC)`
+            ).join('<br>') +
+            (txs.length > 3 ? `<br>... and ${txs.length - 3} more` : '');
+
+        // Store for export
+        window._memoTxs = txs;
+    }
+
+    function exportMemoJSON() {
+        if (!window._memoTxs || window._memoTxs.length === 0) {
+            alert('Generate transactions first.');
+            return;
+        }
+
+        const txBundle = {
+            generated: new Date().toISOString(),
+            validator: selectedValidator?.moniker,
+            validatorAddress: selectedValidator?.address,
+            memo: document.getElementById('memoText').value.trim(),
+            amountPerTx: parseInt(document.getElementById('memoAmount').value) || 1,
+            totalTransactions: window._memoTxs.length,
+            transactions: window._memoTxs.map(t => ({
+                to: t.to,
+                stakedLunc: t.stakedLunc,
+                msg: t.msg,
+                memo: t.memo,
+            })),
+        };
+
+        const blob = new Blob([JSON.stringify(txBundle, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `memo_outreach_${selectedValidator?.moniker?.replace(/[^a-zA-Z0-9]/g, '_') || 'validator'}_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+    }
+
+    // ─── AUTO-FETCH ON LOAD ───
+    fetchValidators();
+
+    </script>
+
+<!-- Alpine Digital Footer -->
+<footer class="alpine-footer">
+  <p>Built by <strong>Alpine Digital</strong> &mdash; Independent LUNC Validator</p>
+  <p class="ver">v4.0 &middot; March 2026</p>
+</footer>
+<script>
+function adToggleDropdown(){const b=document.getElementById('adNavBrand'),d=document.getElementById('adDropdown'),o=document.getElementById('adDdOverlay'),isOpen=d.classList.contains('open');d.classList.toggle('open');o.classList.toggle('open');b.classList.toggle('open');if(!isOpen){const ex=d.querySelector('.dd-section.expanded');if(!ex){const f=d.querySelector('.dd-section');if(f)f.classList.add('expanded')}}}
+function adToggleSection(btn){btn.closest('.dd-section').classList.toggle('expanded')}
+document.getElementById('adDropdown').querySelectorAll('.dd-tool-link[href]').forEach(l=>{l.addEventListener('click',()=>adToggleDropdown())});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const d=document.getElementById('adDropdown');if(d.classList.contains('open'))adToggleDropdown()}});
+</script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The History of Terra Luna — Alpine Digital</title>
+<meta name="description" content="The rise, fall and recovery of Terra — from a $40 billion algorithmic stablecoin empire to the largest collapse in crypto history, and the community rebuild. Every key source, documented.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Archivo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003B62; --navy2:#0A4A78; --deep:#002B47; --blue:#1D68A6;
+  --ice:#C9DCF6; --ice2:#9FC4E8; --slate:#5C6B7A; --ink:#1D2730;
+  --paper:#F6F3EC; --paper2:#FBFAF5; --line:#E2DACB; --white:#fff;
+  --success:#2FB380;
+  --serif:'Spectral',Georgia,'Times New Roman',serif;
+  --sans:'Archivo',-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,.serif{font-family:var(--serif);font-weight:400;letter-spacing:.1px}
+.kicker{font:600 11.5px/1.4 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--blue)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 32px}
+::selection{background:var(--ice);color:var(--navy)}
+a{color:inherit}
+
+/* ═══════════ NAV ═══════════ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(0,59,98,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav .wrap{display:flex;align-items:center;gap:14px;height:62px;max-width:none;padding:0 14px}
+.brand{display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none;text-decoration:none;white-space:nowrap}
+.brand svg{width:27px;height:27px;flex-shrink:0}
+.brand-text{font-family:var(--serif);font-weight:500;font-size:20px;color:#fff;letter-spacing:.4px}
+.brand-text b{color:var(--ice);font-weight:300;font-style:italic}
+.brand{background:none;border:0;padding:6px 8px;margin-left:-8px;border-radius:9px;transition:background .2s;font:inherit}
+.brand:hover{background:rgba(255,255,255,.07)}
+.brand .caret{width:11px;height:11px;color:#9FC0DC;transition:transform .25s;margin-left:2px;flex-shrink:0}
+.brand[aria-expanded="true"] .caret{transform:rotate(180deg)}
+.validator-link{display:inline-flex;align-items:center;gap:7px;margin-left:auto;font:600 11.5px var(--sans);letter-spacing:.05em;color:var(--ice);text-decoration:none;padding:8px 15px;border-radius:20px;background:rgba(47,179,128,.08);border:1px solid rgba(47,179,128,.25);transition:all .2s;white-space:nowrap}
+.validator-link:hover{border-color:rgba(47,179,128,.55);background:rgba(47,179,128,.14)}
+.validator-dot{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px rgba(47,179,128,.6);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+
+/* ═══════════ DROPDOWN (vertical menu under brand) ═══════════ */
+.dd-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(3,25,40,.35)}
+.dd-overlay.open{display:block}
+.dropdown{display:none;position:fixed;top:62px;left:0;z-index:190;width:min(340px,100vw);background:var(--paper2);border:1px solid var(--line);border-top:0;border-radius:0 0 14px 0;box-shadow:0 30px 60px -20px rgba(3,30,50,.45);max-height:calc(100vh - 78px);overflow-y:auto}
+.dropdown.open{display:block;animation:ddIn .26s cubic-bezier(.2,.7,.2,1)}
+@keyframes ddIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.dd-list{padding:14px 20px 20px}
+.dd-home{display:block;font:500 14px var(--sans);color:var(--navy);text-decoration:none;padding:9px 10px;margin:0 -10px 4px;border-radius:8px;transition:all .15s}
+.dd-home:hover{background:var(--ice)}
+.dd-sec{padding-top:12px;margin-top:8px;border-top:1px solid var(--line)}
+.dd-sec .kicker{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.dd-num{font:600 10px var(--sans);color:var(--slate);letter-spacing:.1em}
+.dd-sub{display:block;font:600 9.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#8A96A1;margin:9px 0 2px}
+.dd-link{display:block;font:400 13.5px/1.35 var(--sans);color:#3A4854;text-decoration:none;padding:7px 8px;margin:0 -8px;border-radius:7px;transition:all .15s}
+.dd-link:hover{background:var(--ice);color:var(--navy)}
+.dd-link.current{background:var(--navy);color:#fff}
+.dd-link.planned{color:#9AA5AF;cursor:default;font-style:italic}
+.dd-link.planned:hover{background:none;color:#9AA5AF}
+.dd-link .tag{font:600 9.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#9AA5AF;margin-left:6px}
+
+/* ═══════════ PAGE HERO ═══════════ */
+.phero{position:relative;background:linear-gradient(120deg,#002B47 0%,#003B62 55%,#0A4A78 100%);color:#fff;overflow:hidden;padding:150px 0 64px;margin-top:0}
+.phero .ridge{position:absolute;left:0;right:0;bottom:-2px;width:100%;height:90px;opacity:.14}
+.phero .crumbs{font:600 11px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:#9FC0DC;margin-bottom:16px}
+.phero .crumbs a{text-decoration:none;color:#9FC0DC;transition:color .2s}
+.phero .crumbs a:hover{color:#fff}
+.phero .crumbs span{margin:0 8px;opacity:.5}
+.phero h1{font-size:clamp(36px,5.4vw,62px);line-height:1.04;font-weight:300;max-width:18ch}
+.phero .tag{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(18px,2.3vw,26px);color:var(--ice);margin-top:12px;max-width:52ch}
+.phero p.stand{max-width:60ch;margin-top:18px;font-size:16.5px;color:#DCE8F3;font-weight:300}
+.herostats{display:flex;gap:0;margin-top:40px;border:1px solid rgba(201,220,246,.22);border-radius:14px;overflow:hidden;background:rgba(0,32,53,.35);backdrop-filter:blur(6px);max-width:760px}
+.hs{flex:1;padding:18px 24px;border-left:1px solid rgba(201,220,246,.16)}
+.hs:first-child{border-left:0}
+.hs b{display:block;font-family:var(--serif);font-weight:400;font-size:28px;color:var(--ice);line-height:1.1}
+.hs small{display:block;font:600 10px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:#9FC0DC;margin-top:5px}
+.reveal{opacity:0;transform:translateY(16px);animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.d1{animation-delay:.05s}.d2{animation-delay:.2s}.d3{animation-delay:.35s}.d4{animation-delay:.5s}.d5{animation-delay:.65s}
+
+/* ═══════════ PHASE JUMP BAR ═══════════ */
+.jumpbar{position:sticky;top:62px;z-index:100;background:rgba(251,250,245,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.jumpbar .wrap{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-top:10px;padding-bottom:10px}
+.jumpbar .wrap::-webkit-scrollbar{display:none}
+.jump{font:600 11.5px var(--sans);letter-spacing:.06em;color:var(--slate);text-decoration:none;padding:7px 14px;border-radius:16px;border:1px solid transparent;white-space:nowrap;transition:all .18s}
+.jump:hover{color:var(--navy);background:var(--ice)}
+.jump em{font-style:normal;color:var(--blue);margin-right:6px;font-weight:700}
+
+/* ═══════════ SECTIONS ═══════════ */
+section{padding:66px 0}
+.alt{background:var(--paper2)}
+.dark{background:var(--navy);color:#EAF1F8}
+.dark .kicker{color:var(--ice)}
+.eyebrow{margin-bottom:12px}
+h2.title{font-size:clamp(26px,3.6vw,38px);font-weight:300;color:var(--navy);line-height:1.1;margin:6px 0 8px}
+.dark h2.title{color:#fff}
+.lead{font-size:17px;font-weight:300;color:#33414C;max-width:62ch}
+.dark .lead{color:#D7E6F4}
+.spanline{font-family:var(--serif);font-style:italic;font-size:15px;color:#7C8893;margin-top:2px}
+.dark .spanline{color:#9FC0DC}
+
+/* ═══════════ TIMELINE ═══════════ */
+.tl{position:relative;margin-top:38px}
+.tl::before{content:"";position:absolute;left:168px;top:6px;bottom:6px;width:1.5px;background:var(--line)}
+.dark .tl::before{background:rgba(201,220,246,.22)}
+.tl-item{position:relative;display:grid;grid-template-columns:140px 1fr;gap:56px;padding-bottom:30px}
+.tl-item:last-child{padding-bottom:0}
+.tl-item::before{content:"";position:absolute;left:163.5px;top:7px;width:11px;height:11px;border-radius:50%;background:var(--paper);border:2.5px solid var(--blue)}
+.alt .tl-item::before{background:var(--paper2)}
+.dark .tl-item::before{background:var(--navy);border-color:var(--ice)}
+.tl-item.key::before{background:var(--blue)}
+.dark .tl-item.key::before{background:var(--ice)}
+.tl-date{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--blue);text-align:right;padding-top:3px;line-height:1.5}
+.dark .tl-date{color:var(--ice)}
+.tl-body h3{font-size:19px;font-weight:500;color:var(--navy);margin-bottom:5px}
+.dark .tl-body h3{color:#fff}
+.tl-body p{font-size:14px;color:#44525D;max-width:64ch}
+.dark .tl-body p{color:#C4D6E7}
+
+/* ═══════════ THEORY CARDS ═══════════ */
+.tcards{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:38px}
+.tcard{background:var(--white);border:1px solid var(--line);border-radius:13px;padding:24px 26px;border-top:3px solid var(--navy);transition:transform .2s,box-shadow .25s}
+.tcard:hover{transform:translateY(-3px);box-shadow:0 22px 44px -26px rgba(0,40,70,.5)}
+.tcard h3{font-size:19px;font-weight:500;color:var(--navy);margin:10px 0 7px}
+.tcard p{font-size:14px;color:#44525D}
+.verdict{display:inline-block;font:600 10px var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:4px 12px;border-radius:12px}
+.v-proven{background:var(--navy);color:#fff}
+.v-well{background:var(--blue);color:#fff}
+.v-part{background:var(--slate);color:#fff}
+.v-un{background:transparent;border:1px solid #B9C0C7;color:#7C8893}
+
+/* ═══════════ CURRENT STATE BAND ═══════════ */
+.target{margin-top:38px;background:var(--navy);color:#fff;border-radius:12px;padding:20px 26px;font-size:14.5px;line-height:1.7}
+.target b{color:var(--ice)}
+
+/* ═══════════ REFERENCES ═══════════ */
+.refgroup{margin-top:36px}
+.refgroup .kicker{display:block;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.refgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ref{display:flex;flex-direction:column;background:var(--white);border:1px solid var(--line);border-radius:11px;padding:16px 18px;text-decoration:none;transition:transform .18s,box-shadow .22s,border-color .2s}
+.ref:hover{transform:translateY(-2px);box-shadow:0 16px 32px -20px rgba(0,40,70,.45);border-color:var(--ice2)}
+.ref .cat{font:600 9.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:7px}
+.ref h4{font-size:15.5px;font-weight:500;color:var(--navy);line-height:1.3;margin-bottom:5px}
+.ref p{font-size:12.5px;color:#66737E;line-height:1.5;flex:1}
+.ref span{font:600 11.5px var(--sans);color:var(--blue);margin-top:10px}
+.ref:hover span{text-decoration:underline}
+
+/* ═══════════ PAGER ═══════════ */
+.pager{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:8px}
+.pnav{display:block;background:var(--white);border:1px solid var(--line);border-radius:13px;padding:22px 26px;text-decoration:none;transition:transform .2s,box-shadow .25s}
+.pnav:hover{transform:translateY(-3px);box-shadow:0 22px 44px -26px rgba(0,40,70,.5)}
+.pnav small{display:block;font:600 10px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--slate);margin-bottom:7px}
+.pnav b{font-family:var(--serif);font-weight:500;font-size:19px;color:var(--navy)}
+.pnav.next{text-align:right;border-top:3px solid var(--navy)}
+
+/* scroll reveal */
+.sr{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.sr.vis{opacity:1;transform:none}
+
+/* footer */
+.foot{background:#04293F;color:#9FB6C9;font-size:12.5px;padding:36px 0;text-align:center;line-height:1.8}
+.foot b{color:#CFE0EE}
+.foot .ver{font-size:11px;color:#5E7A90;margin-top:10px;letter-spacing:.06em}
+
+@media(max-width:960px){
+  .refgrid{grid-template-columns:1fr 1fr}
+  .tcards{grid-template-columns:1fr}
+  .herostats{flex-wrap:wrap}
+  .hs{flex-basis:50%;border-left:0;border-top:1px solid rgba(201,220,246,.16)}
+  .hs:nth-child(-n+2){border-top:0}
+  .hs:nth-child(even){border-left:1px solid rgba(201,220,246,.16)}
+}
+@media(max-width:720px){
+  .nav .wrap{padding:0 18px;gap:8px}
+  .brand-text{font-size:17px}
+  .validator-link span.vt{display:none}
+  .wrap{padding:0 22px}
+  .phero{padding:120px 0 48px}
+  .dropdown{left:0;width:100vw}
+  section{padding:50px 0}
+  .tl::before{left:7px}
+  .tl-item{grid-template-columns:1fr;gap:6px;padding-left:32px;padding-bottom:26px}
+  .tl-item::before{left:2.5px}
+  .tl-date{text-align:left}
+  .refgrid{grid-template-columns:1fr}
+  .pager{grid-template-columns:1fr}
+  .pnav.next{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ NAVIGATION ═══════════ -->
+<nav class="nav">
+  <div class="wrap">
+    <button class="brand" id="menuBtn" aria-expanded="false" aria-controls="dropdown" onclick="toggleDropdown()" aria-label="Alpine Digital — open menu">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs><linearGradient id="nG" x1="32" y1="56" x2="32" y2="4" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#0A4A78"/><stop offset="45%" stop-color="#1D68A6"/><stop offset="80%" stop-color="#C9DCF6"/><stop offset="100%" stop-color="#ffffff"/>
+        </linearGradient></defs>
+        <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#nG)"/>
+        <path d="M32 4L25 18h14L32 4z" fill="#fff" opacity="0.9"/>
+      </svg>
+      <span class="brand-text">ALPINE <b>Digital</b></span>
+      <svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 3.5 L5 6.5 L8 3.5"/></svg>
+    </button>
+    <a class="validator-link" href="https://validator.info/terra-classic/terravaloper12drl99s75jslgmk48v9fpqxqjadye2dfrgyasw" target="_blank" rel="noopener">
+      <span class="validator-dot"></span><span class="vt">Validator Active</span>
+    </a>
+  </div>
+</nav>
+
+<!-- Dropdown overlay + mega menu -->
+<div class="dd-overlay" id="ddOverlay" onclick="toggleDropdown()"></div>
+<div class="dropdown" id="dropdown" role="menu" aria-label="Site menu">
+  <div class="dd-list">
+    <a class="dd-home" href="../index.html">Home — Overview</a>
+    <div class="dd-sec">
+      <div class="kicker"><span class="dd-num">01</span>Portfolio Management</div>
+      <a class="dd-link" href="../04-Utilities/SeedGenerator.html">Wallet Generator</a>
+      <a class="dd-link" href="../03-PortfolioManagement/WalletAnalyzer.html">Portfolio Analyzer</a>
+      <a class="dd-link" href="../04-Utilities/WalletScanner.html">Wallet Analyzer</a>
+      <a class="dd-link" href="../03-PortfolioManagement/ModelPortfolios.html">Model Portfolios</a>
+      <a class="dd-link" href="../03-PortfolioManagement/TradePlanner.html">Trade Planner</a>
+    </div>
+    <div class="dd-sec">
+      <div class="kicker"><span class="dd-num">02</span>Luna Classic Ecosystem</div>
+      <span class="dd-sub">Investment thesis</span>
+      <a class="dd-link current" href="History.html">History of Terra Luna</a>
+      <a class="dd-link" href="Emergence.html">The Emergence of LUNC</a>
+      <a class="dd-link" href="Compelling.html">What Makes LUNC Compelling</a>
+      <a class="dd-link" href="Catalysts.html">Key Catalysts</a>
+      <span class="dd-sub">Evaluation &amp; scenario</span>
+      <a class="dd-link" href="../02-EvaluationScenario/BinomialPricingModel.html">Binomial Pricing Model</a>
+      <a class="dd-link" href="../02-EvaluationScenario/ScenarioAnalysis.html">LUNC Profit Scenario Analysis</a>
+      <span class="dd-link planned">Monte Carlo Simulator<span class="tag">planned</span></span>
+    </div>
+    <div class="dd-sec">
+      <div class="kicker"><span class="dd-num">03</span>WESO DeFi</div>
+      <span class="dd-link planned">WESO Token<span class="tag">planned</span></span>
+      <span class="dd-link planned">reBASE Token<span class="tag">planned</span></span>
+      <span class="dd-link planned">WESO DeFi DEX<span class="tag">planned</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE HERO ═══════════ -->
+<header class="phero">
+  <svg class="ridge" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 90 L180 34 L320 62 L480 12 L640 58 L800 22 L980 66 L1140 8 L1300 52 L1440 28 L1440 90 Z" fill="#C9DCF6"/></svg>
+  <div class="wrap">
+    <div class="crumbs reveal d1"><a href="../index.html">Alpine Digital</a><span>/</span><a href="../index.html#toolkit">Investment Thesis</a><span>/</span>Research Archive · 01</div>
+    <h1 class="reveal d2">The rise, fall &amp; recovery of Terra.</h1>
+    <div class="tag reveal d3">From a $40&nbsp;billion algorithmic stablecoin empire to the largest collapse in crypto history — and the community that refused to let the chain die.</div>
+    <p class="stand reveal d4">Five phases, forty milestones, every key source documented. This is the factual backbone of the Alpine Digital thesis — read it before the models, and judge the evidence yourself.</p>
+    <div class="herostats reveal d5">
+      <div class="hs"><b>$119.18</b><small>LUNA all-time high</small></div>
+      <div class="hs"><b>$40B+</b><small>Value destroyed</small></div>
+      <div class="hs"><b>436B+</b><small>LUNC burned</small></div>
+      <div class="hs"><b>15 yrs</b><small>Kwon's sentence</small></div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ PHASE JUMP BAR ═══════════ -->
+<div class="jumpbar">
+  <div class="wrap">
+    <a class="jump" href="#phase1"><em>I</em>The Rise</a>
+    <a class="jump" href="#phase2"><em>II</em>The Fall</a>
+    <a class="jump" href="#phase3"><em>III</em>Theories &amp; Blame</a>
+    <a class="jump" href="#phase4"><em>IV</em>The Legal Reckoning</a>
+    <a class="jump" href="#phase5"><em>V</em>Recovery &amp; Rebuild</a>
+    <a class="jump" href="#references"><em>※</em>References</a>
+  </div>
+</div>
+
+<!-- ═══════════ PHASE I — THE RISE ═══════════ -->
+<section id="phase1">
+  <div class="wrap">
+    <div class="sr">
+      <div class="kicker eyebrow">Phase I — 2018 to April 2022</div>
+      <h2 class="title">The Rise</h2>
+      <p class="lead">Four years from a Seoul white paper to the fourth-largest stablecoin in the world — built on a mechanism that had never been stress-tested at scale.</p>
+    </div>
+    <div class="tl sr">
+      <div class="tl-item"><div class="tl-date">Jan 2018</div><div class="tl-body"><h3>Terraform Labs founded</h3><p>Do Kwon (Stanford CS, ex-Apple/Microsoft) and Daniel Shin (TMON co-founder) establish TFL in Seoul. The white paper proposes a decentralised stablecoin on the Cosmos SDK.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Aug 2018</div><div class="tl-body"><h3>Binance backs the Terra Alliance</h3><p>TFL secures early funding. The Terra Alliance — 15 e-commerce companies across Asia representing 45&nbsp;million users — is established.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Jan 2019</div><div class="tl-body"><h3>$62M ICO &amp; LUNA launch</h3><p>$62M raised, LUNA sold at $0.80. Initial supply: 1&nbsp;billion. First recorded price: $3.27 on May&nbsp;7, 2019.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Jul 2019</div><div class="tl-body"><h3>Chai payment partnership</h3><p>Terra partners with Chai, a Korean mobile-payments app; e-commerce purchases are processed via the Terra blockchain. Later central to the fraud charges.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Jan 2020</div><div class="tl-body"><h3>Daniel Shin departs</h3><p>Shin leaves TFL after two years. Kwon takes 91.7% ownership. LUNA trades at $0.20–$0.50.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Jun 2020</div><div class="tl-body"><h3>Anchor Protocol white paper</h3><p>"The gold standard for passive income on the blockchain." Promises ~20% APY on UST deposits — and eventually absorbs 75% of all circulating UST.</p></div></div>
+      <div class="tl-item key"><div class="tl-date">Sep 2020</div><div class="tl-body"><h3>UST stablecoin launches</h3><p>TerraUSD (UST) — an algorithmic stablecoin pegged to the dollar via mint-and-burn with LUNA. No fiat reserves.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Jan–Jul 2021</div><div class="tl-body"><h3>VC flood: $200M+ raised</h3><p>$25M (Jan) and $150M (Jul) from Arrington Capital, Coinbase Ventures, Galaxy Digital, Lightspeed and Pantera. LUNA climbs from $0.50 into double digits.</p></div></div>
+      <div class="tl-item key"><div class="tl-date">May 2021</div><div class="tl-body"><h3>First UST depeg — the hidden bailout</h3><p>UST drops below $0.92. Kwon claims the algorithm "self-healed." Prosecutors later reveal Jump Trading secretly restored the peg — central to the fraud charges.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Sep 2021</div><div class="tl-body"><h3>Columbus-5 upgrade</h3><p>Post-upgrade, all swapped LUNA is burned (versus 5% previously). More deflationary — but it removes the community-funding safety valve.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Nov 2021</div><div class="tl-body"><h3>Community pool burned for UST</h3><p>88.675M LUNA swapped for UST. Supply balloons from 2.5B to 6.5B. Swaps incur 30% fees, boosting staking yield to 10%.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Jan 2022</div><div class="tl-body"><h3>Luna Foundation Guard established</h3><p>A Singapore non-profit with Kwon as director. It accumulates 80,394 BTC (~$2.4B) to "defend the UST peg."</p></div></div>
+      <div class="tl-item"><div class="tl-date">Apr 1, 2022</div><div class="tl-body"><h3>4pool announcement</h3><p>A new liquidity pool with Frax Finance and Redacted Cartel. The transition leaves Curve's 3pool illiquid — and vulnerable.</p></div></div>
+      <div class="tl-item key"><div class="tl-date">Apr 5, 2022</div><div class="tl-body"><h3>LUNA hits $119.18 — the all-time high</h3><p>The ecosystem exceeds $50B in market cap. UST is the 4th-largest stablecoin at $18B. Anchor holds $17B+ in TVL.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PHASE II — THE FALL (dark) ═══════════ -->
+<section class="dark" id="phase2">
+  <div class="wrap">
+    <div class="sr">
+      <div class="kicker eyebrow">Phase II — May 7–13, 2022</div>
+      <h2 class="title">The Fall</h2>
+      <p class="lead">Six days. A $45&nbsp;billion ecosystem unwinds through the exact mechanism that built it.</p>
+    </div>
+    <div class="tl sr">
+      <div class="tl-item key"><div class="tl-date">May 7<br>evening</div><div class="tl-body"><h3>The trigger: 3pool liquidity drain</h3><p>TFL withdraws 150M UST from Curve's 3pool. Within 13 minutes a trader swaps 85M UST for USDC; a second converts 100M in tranches. TFL withdraws another 100M. UST slips below $0.99.</p></div></div>
+      <div class="tl-item"><div class="tl-date">May 8</div><div class="tl-body"><h3>LFG deploys the Bitcoin reserves</h3><p>LFG sells ~$2.4B of Bitcoin to buy UST. Three supporters swap $480M USDT for UST. The peg is briefly restored to ~$0.995.</p></div></div>
+      <div class="tl-item key"><div class="tl-date">May 9</div><div class="tl-body"><h3>The second — and final — depeg</h3><p>UST loses its peg permanently. Mass Anchor withdrawals; panic cascades across Curve, the CEXs and on-chain. UST crashes 40% in hours.</p></div></div>
+      <div class="tl-item"><div class="tl-date">May 10</div><div class="tl-body"><h3>LFG exhausts its reserves</h3><p>Reserves depleted. The arbitrage mechanism triggers LUNA hyperinflation. Price: ~$30 to single digits.</p></div></div>
+      <div class="tl-item"><div class="tl-date">May 11</div><div class="tl-body"><h3>Emergency Proposal 1164 — the death spiral</h3><p>Minting capacity is raised from $293M to $1.2B daily, accelerating hyperinflation. LUNA supply: 1B to 6.5T in three days. Price: $0.31.</p></div></div>
+      <div class="tl-item key"><div class="tl-date">May 12–13</div><div class="tl-body"><h3>Chain halted; LUNA at zero</h3><p>The chain halts twice. LUNA falls below $0.0001; UST sits at $0.08. ~$45B is wiped out — triggering Three Arrows Capital, Celsius and Voyager, and contributing to FTX's collapse.</p></div></div>
+      <div class="tl-item"><div class="tl-date">May 16</div><div class="tl-body"><h3>Do Kwon proposes the fork</h3><p>"Revival Plan 2": fork to Terra 2.0 (LUNA); rename the original chain Terra Classic (LUNC). The proposal passes May 25; the new chain launches May 28.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PHASE III — THEORIES ═══════════ -->
+<section id="phase3">
+  <div class="wrap">
+    <div class="sr">
+      <div class="kicker eyebrow">Phase III — Theories &amp; blame</div>
+      <h2 class="title">What actually happened?</h2>
+      <p class="lead">Five competing explanations — weighed against the on-chain record, the academic work, and what the courts eventually proved.</p>
+    </div>
+    <div class="tcards sr">
+      <div class="tcard"><span class="verdict v-proven">Proven — court verdict</span><h3>Do Kwon's fraud</h3><p>The DOJ proved Kwon misled investors about the "self-healing" peg (Jump Trading secretly restored it in May 2021) and misrepresented the Chai integration. Guilty plea, August 2025. The judge: "fraud on an epic, generational scale."</p></div>
+      <div class="tcard"><span class="verdict v-well">Well supported</span><h3>Structural inevitability</h3><p>Anchor's 20% APY required $6M/day in subsidies; 75% of UST sat in one protocol; a declining LUNA cap against a growing UST supply was a reflexivity trap. An NBER paper documents the inherent instability.</p></div>
+      <div class="tcard"><span class="verdict v-part">Partially supported</span><h3>Coordinated Curve-pool attack</h3><p>Traders exploited 3pool illiquidity during the 4pool migration. Chainalysis confirmed two wallets swapped ~$185M UST for USDC — but concluded the collapse "stemmed from sustainability concerns, not targeted manipulation."</p></div>
+      <div class="tcard"><span class="verdict v-un">Unproven</span><h3>BlackRock / Citadel conspiracy</h3><p>Originated on 4chan, amplified by Charles Hoskinson: 100K BTC allegedly borrowed from Gemini, 25K swapped for UST, both dumped. All three firms categorically denied involvement.</p></div>
+      <div class="tcard"><span class="verdict v-un">Unproven</span><h3>The regulatory angle</h3><p>Theorised that Treasury Secretary Yellen had an incentive to see algorithmic stablecoins fail; she used the collapse to push regulation. No evidence of orchestration.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PHASE IV — LEGAL ═══════════ -->
+<section class="alt" id="phase4">
+  <div class="wrap">
+    <div class="sr">
+      <div class="kicker eyebrow">Phase IV — 2022 to 2025</div>
+      <h2 class="title">The Legal Reckoning</h2>
+      <p class="lead">From fugitive to a 15-year federal sentence — and a $4.47&nbsp;billion settlement.</p>
+    </div>
+    <div class="tl sr">
+      <div class="tl-item"><div class="tl-date">Feb 16, 2023</div><div class="tl-body"><h3>SEC charges Terraform &amp; Kwon</h3><p>Securities fraud and unregistered offerings. LUNA and MIR are ruled securities.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Mar 23, 2023</div><div class="tl-body"><h3>Kwon arrested in Montenegro</h3><p>Intercepted at Podgorica Airport with forged Costa Rican and Belgian documents — a fugitive since September 2022.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Jan 21, 2024</div><div class="tl-body"><h3>Chapter 11 bankruptcy filed</h3><p>Filed in Delaware. Assets and liabilities: $100M–$500M. Ownership: Kwon 92%, Shin 8%.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Apr 5, 2024</div><div class="tl-body"><h3>SEC civil verdict: liable for fraud</h3><p>A nine-day trial and a two-hour deliberation. The jury finds both liable; Kwon is absent, in Montenegrin custody.</p></div></div>
+      <div class="tl-item key"><div class="tl-date">Jun 12, 2024</div><div class="tl-body"><h3>$4.47B SEC settlement</h3><p>$3.587B disgorgement, $467M interest, $420M penalty. Kwon personally: $204.3M.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Sep 20, 2024</div><div class="tl-body"><h3>Liquidation plan approved</h3><p>A Wind Down Trust is established. Estimated repayments: $185M–$442M.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Dec 31, 2024</div><div class="tl-body"><h3>Extradited to the United States</h3><p>After a protracted US–South Korea battle. Held without bail.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Aug 2025</div><div class="tl-body"><h3>Kwon pleads guilty</h3><p>Wire fraud and conspiracy; he admits concealing Jump Trading's role. The 9-count indictment resolves to 2 counts.</p></div></div>
+      <div class="tl-item key"><div class="tl-date">Dec 11, 2025</div><div class="tl-body"><h3>A 15-year prison sentence</h3><p>"Fraud on an epic, generational scale." He must serve half before a South Korea transfer application, and forfeits $19M.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PHASE V — RECOVERY ═══════════ -->
+<section id="phase5">
+  <div class="wrap">
+    <div class="sr">
+      <div class="kicker eyebrow">Phase V — June 2022 to present</div>
+      <h2 class="title">Recovery &amp; Rebuild</h2>
+      <p class="lead">The part the headlines missed: a fully community-run chain, still shipping — and the reason this archive exists.</p>
+    </div>
+    <div class="tl sr">
+      <div class="tl-item key"><div class="tl-date">May 28, 2022</div><div class="tl-body"><h3>The fork — Terra Classic is born</h3><p>Terra 2.0 launches. The original chain becomes Terra Classic (LUNC); UST becomes USTC. The community inherits 6.5T tokens and a broken stablecoin.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Sep 2022</div><div class="tl-body"><h3>Terra Rebels &amp; the burn tax</h3><p>A community group steps up: a 1.2% on-chain burn tax. Binance contributes all LUNC trading fees to burns.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Feb 2023</div><div class="tl-body"><h3>Blockchain upgrade v1.0.5</h3><p>At block height 11,543,150. 226M LUNC burned in January alone — still short of meaningful supply-reduction targets.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Oct 2023</div><div class="tl-body"><h3>L1TF revival roadmap</h3><p>Vinh Nguyen and the L1 Task Force set the agenda: stability, new use cases, governance, L2 onboarding. 344M LUNC returned to the community pool.</p></div></div>
+      <div class="tl-item"><div class="tl-date">2024</div><div class="tl-body"><h3>A new DeFi ecosystem</h3><p>Terraport, LBUN, Selenium, Garuda DEX, TerraCasino. Upgrade v3.3.0 ships. LUNC ranges $0.0001–$0.00015.</p></div></div>
+      <div class="tl-item key"><div class="tl-date">2025</div><div class="tl-body"><h3>Market Module reactivation &amp; USTC staking</h3><p>The "Ziggy" ERM passes with 76.4%. Market Module v3.5.0 ships in August; MM2.0 by Vegas/StrathCole follows. USTC staking arrives (Mar 2026), v3.6.1 in December; SDK v0.53 is planned for 2026.</p></div></div>
+      <div class="tl-item"><div class="tl-date">Jan 1, 2026</div><div class="tl-body"><h3>Binance's 19th burn: 5.33B LUNC</h3><p>A 20% price rally. Total burns pass 436B (~6.7% of supply). Circulating: ~5.4T. Price: ~$0.00006.</p></div></div>
+    </div>
+    <div class="target sr">
+      <b>Where the chain stands today —</b> 130 validators; ~15% of supply staked (~973B); USTC at $0.005 (99.5% below peg). Active teams: Vegas Node, StrathCole, BLV Labs, OrbitLabs, Duncan. Fee split: 20% burn / 20% Oracle / 60% stabilisation. What that means for the thesis is the subject of <a href="Emergence.html" style="color:var(--ice)">the next chapter</a>.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ REFERENCES ═══════════ -->
+<section class="alt" id="references">
+  <div class="wrap">
+    <div class="sr">
+      <div class="kicker eyebrow">The record</div>
+      <h2 class="title">References &amp; primary sources</h2>
+      <p class="lead">Every claim above traces to a public source — academic, on-chain, legal, or primary. Verify, don't trust.</p>
+    </div>
+
+    <div class="refgroup sr">
+      <span class="kicker">Academic &amp; on-chain research</span>
+      <div class="refgrid">
+        <a class="ref" href="https://www.nber.org/system/files/working_papers/w31160/w31160.pdf" target="_blank" rel="noopener"><span class="cat">Academic</span><h4>Anatomy of a Run: The Terra Luna Crash</h4><p>NBER working paper analysing systemic vulnerabilities.</p><span>Read PDF →</span></a>
+        <a class="ref" href="https://arxiv.org/pdf/2207.13914" target="_blank" rel="noopener"><span class="cat">Academic</span><h4>Anatomy of a Stablecoin's Failure</h4><p>Finance Research Letters on systemic collapse mechanics.</p><span>Read PDF →</span></a>
+        <a class="ref" href="https://arxiv.org/html/2407.10614v2" target="_blank" rel="noopener"><span class="cat">Academic</span><h4>Luna–Terra via Temporal Multilayer Graph</h4><p>arXiv network analysis of contagion effects.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.chainalysis.com/blog/how-terrausd-collapsed/" target="_blank" rel="noopener"><span class="cat">Analytics</span><h4>UST's Collapse &amp; the Trades That Triggered It</h4><p>Chainalysis's comprehensive on-chain forensics.</p><span>Read →</span></a>
+      </div>
+    </div>
+
+    <div class="refgroup sr">
+      <span class="kicker">Legal &amp; regulatory</span>
+      <div class="refgrid">
+        <a class="ref" href="https://www.justice.gov/usao-sdny/pr/crypto-enabled-fraudster-sentenced-orchestrating-40-billion-fraud" target="_blank" rel="noopener"><span class="cat">Legal</span><h4>Fraudster Sentenced — 15 Years</h4><p>DOJ press release on Do Kwon's sentencing.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.sec.gov/newsroom/press-releases/2024-73" target="_blank" rel="noopener"><span class="cat">Legal</span><h4>The $4.5B SEC Settlement</h4><p>SEC press release on the record-breaking settlement.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.sec.gov/enforcement-litigation/distributions-harmed-investors/sec-v-terraform-labs-pte-ltd-do-hyeong-kwon-no-23-cv-1346-jsr-sdny" target="_blank" rel="noopener"><span class="cat">Legal</span><h4>Claims &amp; Distribution Info</h4><p>SEC official claims portal for harmed investors.</p><span>Portal →</span></a>
+        <a class="ref" href="https://www.sec.gov/files/terraform-labs-limited-2nd-amended-ch11-liquidation-plan.pdf" target="_blank" rel="noopener"><span class="cat">Legal</span><h4>Chapter 11 Liquidation Plan</h4><p>SEC filing of the bankruptcy liquidation plan.</p><span>Read PDF →</span></a>
+      </div>
+    </div>
+
+    <div class="refgroup sr">
+      <span class="kicker">News coverage</span>
+      <div class="refgrid">
+        <a class="ref" href="https://www.dlnews.com/articles/regulation/inside-do-kwons-sentencing/" target="_blank" rel="noopener"><span class="cat">News</span><h4>Inside Do Kwon's Sentencing</h4><p>DL News deep dive on the court proceedings and verdict.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.nbcnews.com/world/asia/crypto-founder-kwon-sentenced-15-years-prison-40-billion-collapse-rcna248790" target="_blank" rel="noopener"><span class="cat">News</span><h4>Kwon Sentenced to 15 Years</h4><p>NBC News / Reuters on the sentencing and its impact.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.cnn.com/2025/12/11/business/cryptocurrency-do-kwon-fraud-sentencing-intl-hnk" target="_blank" rel="noopener"><span class="cat">News</span><h4>Kwon Sentenced</h4><p>CNN's coverage of the conviction and sentencing.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.coindesk.com/policy/2025/12/10/terraform-s-do-kwon-sentenced-to-15-years-in-prison-for-fraud" target="_blank" rel="noopener"><span class="cat">News</span><h4>Terra Creator Sentenced</h4><p>CoinDesk on the 15-year prison sentence.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.coindesk.com/policy/2024/04/05/new-york-jury-finds-do-kwon-terraform-labs-liable-for-fraud-in-sec-case" target="_blank" rel="noopener"><span class="cat">News</span><h4>Jury Finds Kwon Liable</h4><p>CoinDesk's coverage of the SEC civil verdict.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.coindesk.com/markets/2022/05/12/citadel-securities-blackrock-gemini-slam-social-media-accusations-of-involvement-with-ust-collapse" target="_blank" rel="noopener"><span class="cat">News</span><h4>Citadel, BlackRock, Gemini Deny</h4><p>On the conspiracy-theory denials during the collapse.</p><span>Read →</span></a>
+        <a class="ref" href="https://fortune.com/2022/05/13/terra-ust-stablecoin-crash-suspicious-potential-attack-george-soros/" target="_blank" rel="noopener"><span class="cat">News</span><h4>Why Did Terra Fall?</h4><p>Fortune's analysis of systemic causes and theories.</p><span>Read →</span></a>
+        <a class="ref" href="https://techcrunch.com/2024/01/21/terraform-labs-files-for-chapter-11-bankruptcy/" target="_blank" rel="noopener"><span class="cat">News</span><h4>Chapter 11 Filed</h4><p>TechCrunch on the Terraform Labs bankruptcy filing.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.newsbtc.com/news/do-kwon-what-happened-to-the-terra-luna-founder/" target="_blank" rel="noopener"><span class="cat">News</span><h4>Do Kwon — Full Profile</h4><p>NewsBTC's comprehensive biography and timeline.</p><span>Read →</span></a>
+      </div>
+    </div>
+
+    <div class="refgroup sr">
+      <span class="kicker">Analysis, data &amp; primary sources</span>
+      <div class="refgrid">
+        <a class="ref" href="https://ecos.am/en/blog/terra-luna-crash-complete-breakdown-of-the-luna-and-ust-algorithmic-stablecoin-implosion" target="_blank" rel="noopener"><span class="cat">Analysis</span><h4>Complete Crash Breakdown</h4><p>ECOS's comprehensive analysis of collapse mechanics.</p><span>Read →</span></a>
+        <a class="ref" href="https://elevenflo.com/blog/terraform-labs-bankruptcy" target="_blank" rel="noopener"><span class="cat">Analysis</span><h4>Terraform Bankruptcy Analysis</h4><p>ElevenFlo's deep dive on the liquidation structure.</p><span>Read →</span></a>
+        <a class="ref" href="https://zipmex.com/blog/what-is-luna-classic/" target="_blank" rel="noopener"><span class="cat">Guide</span><h4>What Is LUNC? 2026 Guide</h4><p>Zipmex's current overview of the Terra Classic ecosystem.</p><span>Read →</span></a>
+        <a class="ref" href="https://learn.bybit.com/en/altcoins/what-is-luna-classic-luna-hard-fork" target="_blank" rel="noopener"><span class="cat">Analysis</span><h4>Can Luna Classic Recover?</h4><p>Bybit's educational analysis of recovery potential.</p><span>Read →</span></a>
+        <a class="ref" href="https://www.lunctoken.org/research/luna-classic-whitepaper/luna-classic-whitepaper/" target="_blank" rel="noopener"><span class="cat">Source</span><h4>Terra Money White Paper</h4><p>The original protocol specification and design rationale.</p><span>Read →</span></a>
+        <a class="ref" href="https://en.wikipedia.org/wiki/Terra_(blockchain)" target="_blank" rel="noopener"><span class="cat">Reference</span><h4>Terra — Wikipedia</h4><p>The encyclopedia entry on the Terra ecosystem.</p><span>Read →</span></a>
+        <a class="ref" href="https://coinmarketcap.com/currencies/terra-luna/" target="_blank" rel="noopener"><span class="cat">Data</span><h4>LUNC — CoinMarketCap</h4><p>Real-time price, supply, and market data.</p><span>View →</span></a>
+        <a class="ref" href="https://github.com/classic-terra/core" target="_blank" rel="noopener"><span class="cat">Source</span><h4>classic-terra/core</h4><p>The official source-code repository on GitHub.</p><span>View →</span></a>
+        <a class="ref" href="https://classic-agora.terra.money" target="_blank" rel="noopener"><span class="cat">Governance</span><h4>Terra Classic Agora</h4><p>The community governance platform and proposal voting.</p><span>Visit →</span></a>
+        <a class="ref" href="https://claims.terra.money/" target="_blank" rel="noopener"><span class="cat">Claims</span><h4>Terra Claims Portal</h4><p>Bankruptcy claims submission and status tracking.</p><span>Visit →</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PAGER ═══════════ -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="pager sr">
+      <a class="pnav" href="../index.html"><small>← Back</small><b>Alpine Digital — Overview</b></a>
+      <a class="pnav next" href="Emergence.html"><small>Next in the thesis →</small><b>The Emergence of LUNC</b></a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="foot">
+  <div class="wrap">
+    <b>Alpine Digital</b> &middot; Independent LUNC Validator &middot; Variant Perception in Digital Assets<br>
+    Nothing on this site constitutes investment advice or an offer or solicitation. Digital assets are highly volatile; capital is at risk. Always consult a qualified financial advisor.
+    <div class="ver">v5.0 &middot; August 2026</div>
+  </div>
+</footer>
+
+<!-- ═══════════ SCRIPTS ═══════════ -->
+<script>
+const menuBtn = document.getElementById('menuBtn');
+const dropdown = document.getElementById('dropdown');
+const overlay  = document.getElementById('ddOverlay');
+function toggleDropdown(){
+  const open = dropdown.classList.toggle('open');
+  overlay.classList.toggle('open', open);
+  menuBtn.setAttribute('aria-expanded', open);
+}
+dropdown.querySelectorAll('a.dd-link').forEach(a => a.addEventListener('click', () => {
+  dropdown.classList.remove('open'); overlay.classList.remove('open');
+  menuBtn.setAttribute('aria-expanded','false');
+}));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && dropdown.classList.contains('open')) toggleDropdown();
+});
+const io = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if (!en.isIntersecting) return;
+    en.target.classList.add('vis');
+    io.unobserve(en.target);
+  });
+}, {threshold: 0.08});
+document.querySelectorAll('.sr').forEach(el => io.observe(el));
+document.querySelectorAll('.tcards .tcard, .refgrid .ref').forEach((el,i) => {
+  el.style.transitionDelay = (i % 4) * 70 + 'ms';
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpine Digital - Trade Planner</title>
+<style>
+:root{--bg:#060d1a;--surface:#0c1829;--surface2:#111f36;--surface3:#182a48;--border:#1e3a62;--border-glow:#3a7cc6;--text:#c8daf0;--text-dim:#6b8cb8;--text-bright:#fff;--accent:#2e7ec7;--accent2:#4a9de8;--accent3:#8cc8f5;--ice:#b0daff;--snow:#daeeff;--success:#34d399;--warning:#f59e0b;--danger:#f87171;--gradient-ice:linear-gradient(135deg,#1a4a80,#2e7ec7,#5eaeff);--radius:12px;--radius-sm:8px;--mono:'SF Mono',SFMono-Regular,Consolas,'Liberation Mono',monospace;
+--pos:#8cc8f5;--pos-bg:rgba(140,200,245,.12);--pos-border:rgba(140,200,245,.3);
+--neg:#1a3a62;--neg-text:#4a6a90;--neg-bg:rgba(26,58,98,.2);--neg-border:rgba(26,58,98,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;overflow-x:hidden}
+.mountain-bg{position:fixed;top:0;left:0;width:100%;height:100vh;overflow:hidden;pointer-events:none;z-index:0}
+.mountain-bg img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.container{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:24px}
+header{margin-bottom:36px;padding-top:20px}
+.header-content{display:flex;align-items:center;gap:20px;margin-bottom:8px}
+.alpine-icon{width:60px;height:60px;flex-shrink:0}
+.header-text h1{font-size:32px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px}
+.header-text h1 span{color:var(--text-dim)}
+.header-text p{color:var(--text-dim);font-size:14px}
+.badge-group{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.badge{font-size:12px;padding:4px 12px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--accent3)}
+.card{background:rgba(8,16,30,.82);border:1px solid rgba(30,58,98,.5);border-radius:var(--radius);margin-bottom:24px;position:relative;overflow:hidden;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-ice)}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);font-size:16px;font-weight:600;color:var(--text-bright);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-content{padding:20px}
+button{padding:10px 16px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text-bright)}
+.btn-primary{background:var(--gradient-ice)}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(46,126,199,.3)}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text)}.btn-secondary:hover{background:var(--surface3);border-color:var(--border-glow)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-danger{background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--danger)}.btn-danger:hover{background:rgba(248,113,113,.25)}
+.button-group{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Forms */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-row.three{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:700px){.form-row,.form-row.three{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px}
+.form-group input,.form-group select{padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--mono);font-size:13px}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--border-glow);background:var(--surface3)}
+.form-group .hint{font-size:10px;color:var(--text-dim);margin-top:2px}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:800px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center}
+.stat-card .stat-value{font-size:18px;font-weight:700;color:var(--text-bright);font-family:var(--mono);margin-bottom:2px}
+.stat-card .stat-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+.stat-card.highlight{border-color:var(--accent2);background:linear-gradient(135deg,rgba(46,126,199,.12),rgba(74,157,232,.05))}
+
+/* Tranche Table */
+.tranche-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+.tranche-table th{text-align:left;font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;padding:10px 12px;border-bottom:1px solid var(--border)}
+.tranche-table td{padding:8px 12px;border-bottom:1px solid rgba(30,58,98,.3);vertical-align:middle}
+.tranche-table tr:last-child td{border-bottom:none}
+.tranche-table input{width:100%;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:13px;text-align:right}
+.tranche-table input:focus{border-color:var(--border-glow);outline:none}
+.tranche-table .tranche-num{color:var(--accent3);font-weight:700;text-align:center;min-width:30px}
+.tranche-table .remove-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;padding:4px 8px;opacity:.5;transition:opacity .2s}
+.tranche-table .remove-btn:hover{opacity:1}
+.total-row{background:var(--surface3);font-weight:700}
+.total-row td{color:var(--text-bright);border-top:2px solid var(--accent)}
+
+/* Pyramid Chart */
+.pyramid-container{display:flex;flex-direction:column;align-items:center;gap:0;padding:20px 0}
+.pyramid-row{display:flex;align-items:center;gap:12px;width:100%;justify-content:center;margin-bottom:4px;cursor:pointer;transition:all .2s}
+.pyramid-row:hover{transform:scale(1.02)}
+.pyramid-row.hit .pyramid-bar{opacity:1}
+.pyramid-row.miss .pyramid-bar{opacity:.25}
+.pyramid-label-left{width:120px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+.pyramid-bar{height:38px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;transition:all .4s ease;position:relative;min-width:40px}
+.pyramid-label-right{width:140px;text-align:left;font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+.pyramid-check{width:28px;text-align:center;font-size:16px;cursor:pointer;user-select:none}
+
+/* Cumulative chart */
+.cumulative-bar-wrap{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.cum-label{width:100px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+.cum-bar-shell{flex:1;height:28px;background:var(--surface);border:1px solid rgba(30,58,98,.3);border-radius:6px;overflow:hidden;position:relative}
+.cum-bar-fill{height:100%;border-radius:6px;transition:width .6s ease;display:flex;align-items:center;padding-left:10px;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;min-width:fit-content;white-space:nowrap}
+.cum-value{width:130px;font-family:var(--mono);font-size:12px;color:var(--text-bright);text-align:right}
+
+/* DCF Section */
+.dcf-row{display:grid;grid-template-columns:80px 1fr 120px 120px 120px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(30,58,98,.3);font-family:var(--mono);font-size:13px}
+.dcf-row:last-child{border-bottom:none}
+.dcf-header{font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.dcf-bar{height:20px;background:var(--gradient-ice);border-radius:4px;transition:width .6s ease;min-width:4px}
+@media(max-width:700px){.dcf-row{grid-template-columns:60px 1fr 90px 90px}}
+
+.security-notice{margin-top:32px;padding:16px 20px;background:rgba(8,16,30,.82);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-dim);backdrop-filter:blur(20px)}
+.strategist-tag{font-size:11px;color:var(--accent3);font-style:italic;margin-left:8px}
+
+/* Toggle switches for hit/miss */
+.toggle-switch{position:relative;display:inline-block;width:36px;height:20px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;height:14px;width:14px;left:2px;bottom:2px;background:var(--text-dim);border-radius:50%;transition:.3s}
+.toggle-switch input:checked+.toggle-slider{background:var(--accent);border-color:var(--accent2)}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(16px);background:#fff}
+
+@media(max-width:600px){.container{padding:12px}.stats-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="mountain-bg"><img src="alpine-bg.jpg" alt="" loading="eager"></div>
+<div class="container">
+<header>
+    <div class="header-content">
+        <svg class="alpine-icon" viewBox="0 0 64 64" fill="none"><defs><linearGradient id="aGrad" x1="16" y1="56" x2="48" y2="8"><stop offset="0%" stop-color="#0f2e5e"/><stop offset="40%" stop-color="#2e7ec7"/><stop offset="100%" stop-color="#8cc8f5"/></linearGradient></defs><path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#aGrad)"/><path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="none" stroke="#a3d5ff" stroke-width="1" opacity=".4"/><path d="M22 44l10-20 10 20" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/><path d="M32 4L25 18h14L32 4z" fill="#fff" opacity=".5"/></svg>
+        <div class="header-text"><h1>ALPINE <span>DIGITAL</span></h1><p>Tranche Exit Planner</p></div>
+    </div>
+    <p style="color:var(--text-dim);font-size:13px;margin-top:12px;">Position Exit Strategy & Discounted Cash Flow Analysis <span class="strategist-tag">by LUNC Strategist</span></p>
+    <div class="badge-group"><div class="badge">Tranche Exits</div><div class="badge">DCF Analysis</div><div class="badge">Scenario Modeling</div><div class="badge">Position Sizing</div></div>
+</header>
+
+<!-- Position Setup -->
+<div class="card">
+    <div class="card-header">Position Setup</div>
+    <div class="card-content">
+        <div class="form-row three">
+            <div class="form-group">
+                <label>Token / Asset</label>
+                <input type="text" id="tokenName" value="LUNC" placeholder="e.g. LUNC, BTC, ETH">
+            </div>
+            <div class="form-group">
+                <label>Holdings (Quantity)</label>
+                <input type="number" id="holdingQty" value="1000000000" step="any" placeholder="How many tokens you hold">
+                <div class="hint">Total position size</div>
+            </div>
+            <div class="form-group">
+                <label>Current Price (USD)</label>
+                <input type="number" id="currentPrice" value="0.00008" step="any" placeholder="0.00008">
+                <div class="hint">Current market price per token</div>
+            </div>
+        </div>
+        <div class="form-row three">
+            <div class="form-group">
+                <label>Cost Basis / Avg Buy Price (USD)</label>
+                <input type="number" id="costBasis" value="0.00005" step="any" placeholder="Your average entry price">
+                <div class="hint">Used to calculate profit</div>
+            </div>
+            <div class="form-group">
+                <label>Discount Rate / Cost of Capital (%)</label>
+                <input type="number" id="discountRate" value="10" step="0.1" min="0" max="100">
+                <div class="hint">Annual rate to discount future cash flows</div>
+            </div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button class="btn-primary" onclick="calculate()" style="height:42px">Calculate Exit Plan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tranche Configuration -->
+<div class="card">
+    <div class="card-header">
+        Exit Tranches
+        <div class="button-group">
+            <button class="btn-secondary btn-sm" onclick="addTranche()">+ Add Tranche</button>
+            <button class="btn-secondary btn-sm" onclick="resetTranches()">Reset</button>
+        </div>
+    </div>
+    <div class="card-content" style="overflow-x:auto">
+        <table class="tranche-table" id="trancheTable">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>Target Price ($)</th>
+                    <th>% of Position</th>
+                    <th>Tokens to Sell</th>
+                    <th>Time Horizon (Yrs)</th>
+                    <th>Gross Proceeds</th>
+                    <th>Profit</th>
+                    <th>Return Multiple</th>
+                    <th style="width:40px"></th>
+                </tr>
+            </thead>
+            <tbody id="trancheBody"></tbody>
+            <tfoot>
+                <tr class="total-row" id="totalRow">
+                    <td></td>
+                    <td></td>
+                    <td id="totalWeight">0%</td>
+                    <td id="totalTokens">0</td>
+                    <td></td>
+                    <td id="totalProceeds">$0</td>
+                    <td id="totalProfit">$0</td>
+                    <td id="totalMultiple">0x</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-dim)">Weights must sum to 100% for full position exit, or less for partial exit strategy.</div>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="card" id="resultsCard" style="display:none">
+    <div class="card-header">Exit Plan Summary</div>
+    <div class="card-content">
+        <div class="stats-grid" id="summaryStats"></div>
+    </div>
+</div>
+
+<!-- Pyramid Chart -->
+<div class="card" id="pyramidCard" style="display:none">
+    <div class="card-header">
+        Exit Pyramid — Toggle Targets Hit
+        <div style="font-size:11px;color:var(--text-dim);font-weight:400">Click toggles to model which price targets are reached</div>
+    </div>
+    <div class="card-content">
+        <div class="pyramid-container" id="pyramidChart"></div>
+        <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">If Selected Targets Hit</div>
+            <div class="stats-grid" id="pyramidSummary" style="max-width:800px;margin:0 auto"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Cumulative Return Chart -->
+<div class="card" id="cumulativeCard" style="display:none">
+    <div class="card-header">Cumulative Returns by Tranche</div>
+    <div class="card-content" id="cumulativeChart"></div>
+</div>
+
+<!-- DCF Analysis -->
+<div class="card" id="dcfCard" style="display:none">
+    <div class="card-header">Discounted Cash Flow Analysis</div>
+    <div class="card-content">
+        <div class="stats-grid" id="dcfSummary" style="margin-bottom:20px"></div>
+        <div id="dcfRows"></div>
+    </div>
+</div>
+
+<div class="security-notice">
+    Alpine Digital — Tranche Exit Planner v1.0 — For planning purposes only. Not financial advice. Past performance does not indicate future results. Always do your own research.
+</div>
+</div>
+
+<script>
+// Default tranches matching the screenshot
+let tranches = [
+    {price: 0.10, weight: 8.33, horizon: 3},
+    {price: 0.50, weight: 8.33, horizon: 3},
+    {price: 1.00, weight: 8.33, horizon: 5},
+    {price: 2.50, weight: 8.33, horizon: 5},
+    {price: 5, weight: 8.33, horizon: 5},
+    {price: 10, weight: 8.33, horizon: 7},
+    {price: 25, weight: 8.34, horizon: 7},
+    {price: 50, weight: 8.33, horizon: 7},
+    {price: 75, weight: 8.33, horizon: 10},
+    {price: 100, weight: 8.33, horizon: 10},
+    {price: 150, weight: 8.33, horizon: 10},
+    {price: 250, weight: 8.34, horizon: 10},
+];
+
+let hitState = []; // which tranches are toggled as "hit"
+
+function fmt(n) {
+    if (Math.abs(n) >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+    if (Math.abs(n) >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+    if (Math.abs(n) >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+    if (Math.abs(n) >= 1e3) return '$' + (n/1e3).toFixed(2) + 'K';
+    return '$' + n.toFixed(2);
+}
+
+function fmtFull(n) {
+    return '$' + n.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+
+function fmtPrice(n) {
+    if (n < 0.001) return '$' + n.toFixed(6);
+    if (n < 1) return '$' + n.toFixed(4);
+    if (n < 100) return '$' + n.toFixed(2);
+    return '$' + n.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+
+function fmtTokens(n) {
+    return n.toLocaleString('en-US', {maximumFractionDigits: 0});
+}
+
+function fmtMultiple(n) {
+    if (n >= 1e6) return (n/1e6).toFixed(0) + 'Mx';
+    if (n >= 1e3) return (n/1e3).toFixed(0) + 'Kx';
+    return n.toLocaleString('en-US', {maximumFractionDigits: 0}) + 'x';
+}
+
+function renderTranches() {
+    const body = document.getElementById('trancheBody');
+    const qty = parseFloat(document.getElementById('holdingQty').value) || 0;
+    const cost = parseFloat(document.getElementById('costBasis').value) || 0;
+
+    body.innerHTML = '';
+    let totalWeight = 0, totalTokens = 0, totalProceeds = 0, totalProfit = 0, totalCost = 0;
+
+    tranches.forEach((t, i) => {
+        const tokens = qty * (t.weight / 100);
+        const proceeds = tokens * t.price;
+        const costVal = tokens * cost;
+        const profit = proceeds - costVal;
+        const multiple = cost > 0 ? t.price / cost : 0;
+
+        totalWeight += t.weight;
+        totalTokens += tokens;
+        totalProceeds += proceeds;
+        totalCost += costVal;
+        totalProfit += profit;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="tranche-num">${i + 1}</td>
+            <td><input type="number" value="${t.price}" step="any" onchange="updateTranche(${i},'price',this.value)"></td>
+            <td><input type="number" value="${t.weight}" step="0.01" min="0" max="100" onchange="updateTranche(${i},'weight',this.value)"></td>
+            <td style="color:var(--text-dim);text-align:right">${fmtTokens(tokens)}</td>
+            <td><input type="number" value="${t.horizon}" step="0.5" min="0.5" max="30" onchange="updateTranche(${i},'horizon',this.value)"></td>
+            <td style="text-align:right;color:var(--accent3)">${fmt(proceeds)}</td>
+            <td style="text-align:right;color:var(--pos)">${fmt(profit)}</td>
+            <td style="text-align:right;color:var(--text-bright);font-weight:700">${fmtMultiple(multiple)}</td>
+            <td><button class="remove-btn" onclick="removeTranche(${i})">&times;</button></td>
+        `;
+        body.appendChild(tr);
+    });
+
+    const avgMultiple = totalCost > 0 ? totalProceeds / totalCost : 0;
+    document.getElementById('totalWeight').textContent = totalWeight.toFixed(2) + '%';
+    document.getElementById('totalTokens').textContent = fmtTokens(totalTokens);
+    document.getElementById('totalProceeds').textContent = fmt(totalProceeds);
+    document.getElementById('totalProfit').textContent = fmt(totalProfit);
+    document.getElementById('totalMultiple').textContent = fmtMultiple(avgMultiple);
+
+    document.getElementById('totalWeight').style.color = Math.abs(totalWeight - 100) < 0.1 ? 'var(--success)' : 'var(--warning)';
+}
+
+function updateTranche(i, field, val) {
+    tranches[i][field] = parseFloat(val) || 0;
+    renderTranches();
+}
+
+function addTranche() {
+    const lastPrice = tranches.length > 0 ? tranches[tranches.length - 1].price * 2 : 1;
+    const lastHorizon = tranches.length > 0 ? tranches[tranches.length - 1].horizon : 5;
+    tranches.push({price: lastPrice, weight: 5, horizon: lastHorizon});
+    hitState.push(true);
+    renderTranches();
+}
+
+function removeTranche(i) {
+    if (tranches.length <= 1) return;
+    tranches.splice(i, 1);
+    hitState.splice(i, 1);
+    renderTranches();
+}
+
+function resetTranches() {
+    tranches = [
+        {price: 0.10, weight: 8.33, horizon: 3},
+        {price: 0.50, weight: 8.33, horizon: 3},
+        {price: 1.00, weight: 8.33, horizon: 5},
+        {price: 2.50, weight: 8.33, horizon: 5},
+        {price: 5, weight: 8.33, horizon: 5},
+        {price: 10, weight: 8.33, horizon: 7},
+        {price: 25, weight: 8.34, horizon: 7},
+        {price: 50, weight: 8.33, horizon: 7},
+        {price: 75, weight: 8.33, horizon: 10},
+        {price: 100, weight: 8.33, horizon: 10},
+        {price: 150, weight: 8.33, horizon: 10},
+        {price: 250, weight: 8.34, horizon: 10},
+    ];
+    hitState = tranches.map(() => true);
+    renderTranches();
+    calculate();
+}
+
+function calculate() {
+    const qty = parseFloat(document.getElementById('holdingQty').value) || 0;
+    const currentPrice = parseFloat(document.getElementById('currentPrice').value) || 0;
+    const cost = parseFloat(document.getElementById('costBasis').value) || 0;
+    const discountRate = (parseFloat(document.getElementById('discountRate').value) || 10) / 100;
+    const token = document.getElementById('tokenName').value || 'TOKEN';
+
+    // Ensure hitState matches tranches
+    while (hitState.length < tranches.length) hitState.push(true);
+    hitState.length = tranches.length;
+
+    const currentValue = qty * currentPrice;
+    const totalCostBasis = qty * cost;
+
+    // Compute tranche data
+    let trancheData = tranches.map((t, i) => {
+        const tokens = qty * (t.weight / 100);
+        const proceeds = tokens * t.price;
+        const costVal = tokens * cost;
+        const profit = proceeds - costVal;
+        const multiple = cost > 0 ? t.price / cost : 0;
+        const pv = proceeds / Math.pow(1 + discountRate, t.horizon);
+        const pvProfit = pv - costVal;
+        return { ...t, tokens, proceeds, costVal, profit, multiple, pv, pvProfit, index: i };
+    });
+
+    let totalProceeds = trancheData.reduce((s, d) => s + d.proceeds, 0);
+    let totalProfit = trancheData.reduce((s, d) => s + d.profit, 0);
+    let totalPV = trancheData.reduce((s, d) => s + d.pv, 0);
+    let avgMultiple = totalCostBasis > 0 ? totalProceeds / totalCostBasis : 0;
+    let weightedHorizon = trancheData.reduce((s, d) => s + d.weight * d.horizon, 0) / trancheData.reduce((s, d) => s + d.weight, 0);
+
+    // Summary Stats
+    document.getElementById('resultsCard').style.display = '';
+    document.getElementById('summaryStats').innerHTML = `
+        <div class="stat-card"><div class="stat-value">${fmt(currentValue)}</div><div class="stat-label">Current Position Value</div></div>
+        <div class="stat-card highlight"><div class="stat-value">${fmt(totalProceeds)}</div><div class="stat-label">Total Exit Proceeds</div></div>
+        <div class="stat-card"><div class="stat-value">${fmt(totalProfit)}</div><div class="stat-label">Total Profit</div></div>
+        <div class="stat-card"><div class="stat-value">${fmtMultiple(avgMultiple)}</div><div class="stat-label">Avg Return Multiple</div></div>
+        <div class="stat-card"><div class="stat-value">${fmt(totalPV)}</div><div class="stat-label">NPV (All Exits)</div></div>
+        <div class="stat-card"><div class="stat-value">${fmt(totalPV - totalCostBasis)}</div><div class="stat-label">NPV Profit</div></div>
+        <div class="stat-card"><div class="stat-value">${weightedHorizon.toFixed(1)} yrs</div><div class="stat-label">Wtd Avg Horizon</div></div>
+        <div class="stat-card"><div class="stat-value">${(discountRate * 100).toFixed(1)}%</div><div class="stat-label">Discount Rate</div></div>
+    `;
+
+    // Pyramid Chart
+    document.getElementById('pyramidCard').style.display = '';
+    renderPyramid(trancheData, qty, cost, discountRate, token);
+
+    // Cumulative Chart
+    document.getElementById('cumulativeCard').style.display = '';
+    renderCumulative(trancheData);
+
+    // DCF
+    document.getElementById('dcfCard').style.display = '';
+    renderDCF(trancheData, totalCostBasis, discountRate);
+}
+
+function renderPyramid(data, qty, cost, discountRate, token) {
+    const container = document.getElementById('pyramidChart');
+    const maxProceeds = Math.max(...data.map(d => d.proceeds));
+
+    // Build pyramid - widest at bottom (highest price), narrowest at top (lowest price)
+    // We reverse so highest value is at bottom
+    const sorted = [...data].sort((a, b) => a.price - b.price);
+
+    const colors = [
+        '#0d3868','#104080','#144a94','#1856a8','#1c62bc',
+        '#2070d0','#2e7ec7','#3a8cd4','#4a9de8','#5eaeff',
+        '#78bfff','#8cc8f5'
+    ];
+
+    let html = '';
+    sorted.forEach((d, i) => {
+        const widthPct = 20 + (i / (sorted.length - 1 || 1)) * 75; // 20% to 95%
+        const color = colors[Math.min(i, colors.length - 1)];
+        const isHit = hitState[d.index];
+        const hitClass = isHit ? 'hit' : 'miss';
+
+        html += `
+        <div class="pyramid-row ${hitClass}" data-idx="${d.index}">
+            <div class="pyramid-label-left">${fmtPrice(d.price)}</div>
+            <div class="pyramid-check">
+                <label class="toggle-switch">
+                    <input type="checkbox" ${isHit ? 'checked' : ''} onchange="toggleHit(${d.index}, this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="pyramid-bar" style="width:${widthPct}%;background:${color}">${d.weight.toFixed(2)}% — ${fmt(d.proceeds)}</div>
+            <div class="pyramid-label-right">${fmtMultiple(d.multiple)} · ${d.horizon}yr</div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+    updatePyramidSummary(data, qty, cost, discountRate);
+}
+
+function toggleHit(idx, checked) {
+    hitState[idx] = checked;
+    // Re-render pyramid hit/miss classes
+    document.querySelectorAll('.pyramid-row').forEach(row => {
+        const rowIdx = parseInt(row.dataset.idx);
+        row.classList.toggle('hit', hitState[rowIdx]);
+        row.classList.toggle('miss', !hitState[rowIdx]);
+    });
+
+    const qty = parseFloat(document.getElementById('holdingQty').value) || 0;
+    const cost = parseFloat(document.getElementById('costBasis').value) || 0;
+    const discountRate = (parseFloat(document.getElementById('discountRate').value) || 10) / 100;
+
+    const data = tranches.map((t, i) => {
+        const tokens = qty * (t.weight / 100);
+        const proceeds = tokens * t.price;
+        const costVal = tokens * cost;
+        const profit = proceeds - costVal;
+        const multiple = cost > 0 ? t.price / cost : 0;
+        const pv = proceeds / Math.pow(1 + discountRate, t.horizon);
+        return { ...t, tokens, proceeds, costVal, profit, multiple, pv, index: i };
+    });
+
+    updatePyramidSummary(data, qty, cost, discountRate);
+}
+
+function updatePyramidSummary(data, qty, cost, discountRate) {
+    const hitData = data.filter(d => hitState[d.index]);
+    const missData = data.filter(d => !hitState[d.index]);
+
+    const hitProceeds = hitData.reduce((s, d) => s + d.proceeds, 0);
+    const hitProfit = hitData.reduce((s, d) => s + d.profit, 0);
+    const hitPV = hitData.reduce((s, d) => s + d.pv, 0);
+    const hitCost = hitData.reduce((s, d) => s + d.costVal, 0);
+    const hitTokens = hitData.reduce((s, d) => s + d.tokens, 0);
+    const unsoldTokens = qty - hitTokens;
+    const hitPct = hitData.reduce((s, d) => s + d.weight, 0);
+    const hitMultiple = hitCost > 0 ? hitProceeds / hitCost : 0;
+
+    document.getElementById('pyramidSummary').innerHTML = `
+        <div class="stat-card"><div class="stat-value" style="color:var(--success)">${hitData.length}/${data.length}</div><div class="stat-label">Targets Hit</div></div>
+        <div class="stat-card highlight"><div class="stat-value">${fmt(hitProceeds)}</div><div class="stat-label">Realized Proceeds</div></div>
+        <div class="stat-card"><div class="stat-value">${fmt(hitProfit)}</div><div class="stat-label">Realized Profit</div></div>
+        <div class="stat-card"><div class="stat-value">${fmt(hitPV)}</div><div class="stat-label">NPV of Realized</div></div>
+        <div class="stat-card"><div class="stat-value">${fmtMultiple(hitMultiple)}</div><div class="stat-label">Realized Multiple</div></div>
+        <div class="stat-card"><div class="stat-value">${hitPct.toFixed(1)}%</div><div class="stat-label">Position Exited</div></div>
+        <div class="stat-card"><div class="stat-value">${fmtTokens(unsoldTokens)}</div><div class="stat-label">Tokens Remaining</div></div>
+        <div class="stat-card"><div class="stat-value">${(100 - hitPct).toFixed(1)}%</div><div class="stat-label">Still Held</div></div>
+    `;
+}
+
+function renderCumulative(data) {
+    const container = document.getElementById('cumulativeChart');
+    const sorted = [...data].sort((a, b) => a.price - b.price);
+
+    let cumProceeds = 0;
+    let cumProfit = 0;
+    const totalProceeds = data.reduce((s, d) => s + d.proceeds, 0);
+
+    let html = '';
+    sorted.forEach((d, i) => {
+        cumProceeds += d.proceeds;
+        cumProfit += d.profit;
+        const pct = totalProceeds > 0 ? (cumProceeds / totalProceeds) * 100 : 0;
+
+        const hue = 200 + (i / sorted.length) * 20;
+        const lightness = 30 + (i / sorted.length) * 25;
+
+        html += `
+        <div class="cumulative-bar-wrap">
+            <div class="cum-label">${fmtPrice(d.price)}</div>
+            <div class="cum-bar-shell">
+                <div class="cum-bar-fill" style="width:${Math.max(pct, 3)}%;background:hsl(${hue},70%,${lightness}%)">${(i + 1)} of ${sorted.length}</div>
+            </div>
+            <div class="cum-value">${fmt(cumProceeds)}</div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function renderDCF(data, totalCostBasis, discountRate) {
+    const sorted = [...data].sort((a, b) => a.horizon - b.horizon || a.price - b.price);
+    const maxPV = Math.max(...data.map(d => d.pv));
+    const totalPV = data.reduce((s, d) => s + d.pv, 0);
+    const totalProceeds = data.reduce((s, d) => s + d.proceeds, 0);
+    const discountLoss = totalProceeds - totalPV;
+    const npvProfit = totalPV - totalCostBasis;
+    const pvMultiple = totalCostBasis > 0 ? totalPV / totalCostBasis : 0;
+
+    document.getElementById('dcfSummary').innerHTML = `
+        <div class="stat-card"><div class="stat-value">${fmt(totalProceeds)}</div><div class="stat-label">Undiscounted Total</div></div>
+        <div class="stat-card highlight"><div class="stat-value">${fmt(totalPV)}</div><div class="stat-label">Present Value (NPV)</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--danger)">${fmt(discountLoss)}</div><div class="stat-label">Time Value Discount</div></div>
+        <div class="stat-card"><div class="stat-value">${fmtMultiple(pvMultiple)}</div><div class="stat-label">PV Return Multiple</div></div>
+    `;
+
+    let rowsHtml = `
+    <div class="dcf-row dcf-header">
+        <div>Tranche</div>
+        <div>PV Bar</div>
+        <div style="text-align:right">Nominal</div>
+        <div style="text-align:right">Present Value</div>
+        <div style="text-align:right">Discount</div>
+    </div>`;
+
+    sorted.forEach((d, i) => {
+        const barPct = maxPV > 0 ? (d.pv / maxPV) * 100 : 0;
+        const discount = d.proceeds - d.pv;
+        const discPct = d.proceeds > 0 ? (discount / d.proceeds * 100) : 0;
+
+        rowsHtml += `
+        <div class="dcf-row">
+            <div style="color:var(--accent3);font-weight:700">#${d.index + 1}<br><span style="font-size:10px;color:var(--text-dim)">${d.horizon}yr</span></div>
+            <div><div class="dcf-bar" style="width:${Math.max(barPct, 2)}%"></div></div>
+            <div style="text-align:right">${fmt(d.proceeds)}</div>
+            <div style="text-align:right;color:var(--accent3)">${fmt(d.pv)}</div>
+            <div style="text-align:right;color:var(--danger);font-size:11px">-${fmt(discount)}<br><span style="font-size:10px">(${discPct.toFixed(1)}%)</span></div>
+        </div>`;
+    });
+
+    document.getElementById('dcfRows').innerHTML = rowsHtml;
+}
+
+// Initialize
+hitState = tranches.map(() => true);
+renderTranches();
+calculate();
+</script>
+</body>
+</html>

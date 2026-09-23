@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpine Digital — Variant Perception</title>
+<style>
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+  :root {
+    --bg: #0e1c33;
+    --surface: #142742;
+    --surface2: #1b3252;
+    --surface3: #223d62;
+    --border: #2a5585;
+    --border-glow: #5098d0;
+    --text: #d4e4f5;
+    --text-dim: #7ea0c8;
+    --text-bright: #ffffff;
+    --accent: #4a8cc0;
+    --accent2: #6aade0;
+    --accent3: #98ccf0;
+    --ice: #c0e4ff;
+    --snow: #e0f0ff;
+    --success: #34d399;
+    --gradient-ice: linear-gradient(135deg, #2a6098, #4a8cc0, #78c0f0);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --mono: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+    --sans: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ═══════════ NAV BAR ═══════════ */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; align-items: center;
+    padding: 0 32px; height: 56px;
+    background: rgba(14, 28, 51, 0.88);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(42, 85, 133, 0.3);
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; user-select: none;
+    color: var(--text-bright); text-decoration: none;
+    padding: 8px 0;
+  }
+  .nav-brand svg:first-child { width: 26px; height: 26px; flex-shrink: 0; }
+  .nav-brand-text {
+    font-size: 0.9rem; font-weight: 700; letter-spacing: 0.4px;
+  }
+  .nav-brand-text em {
+    font-style: normal; font-weight: 300;
+    background: var(--gradient-ice);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .nav-caret {
+    width: 10px; height: 10px; margin-left: 4px;
+    transition: transform 0.2s ease;
+  }
+  .nav-brand:hover .nav-caret { transform: rotate(180deg); }
+  .nav-brand.open .nav-caret { transform: rotate(180deg); }
+
+  /* Validator badge — right side */
+  .nav-right { margin-left: auto; }
+  .validator-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 0.68rem;
+    color: var(--text-dim); text-decoration: none;
+    padding: 4px 12px; border-radius: 14px;
+    background: rgba(74, 140, 192, 0.08);
+    border: 1px solid rgba(74, 140, 192, 0.15);
+    transition: all 0.2s;
+  }
+  .validator-link:hover {
+    color: var(--accent3); border-color: rgba(74, 140, 192, 0.35);
+  }
+  .validator-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--success); box-shadow: 0 0 6px rgba(52,211,153,0.4);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 0.5; } 50% { opacity: 1; }
+  }
+
+  /* ═══════════ DROPDOWN MENU ═══════════ */
+  .dropdown-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 150;
+    background: rgba(0,0,0,0.3);
+  }
+  .dropdown-overlay.open { display: block; }
+
+  .dropdown {
+    display: none;
+    position: fixed; top: 56px; left: 0; z-index: 190;
+    width: 340px;
+    background: rgba(18, 32, 56, 0.96);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(42, 85, 133, 0.4);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    padding: 12px 0;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+  .dropdown.open { display: block; }
+
+  .dd-section { padding: 0 8px; }
+  .dd-section-btn {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 10px 14px;
+    background: none; border: none; color: var(--ice);
+    font-family: var(--sans); font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    cursor: pointer; border-radius: var(--radius-sm);
+    transition: background 0.15s;
+  }
+  .dd-section-btn:hover { background: rgba(42, 85, 133, 0.2); }
+  .dd-section-num {
+    font-family: var(--mono); font-size: 0.6rem;
+    color: var(--accent2); background: rgba(106,173,224,0.10);
+    border: 1px solid rgba(106,173,224,0.18);
+    padding: 2px 7px; border-radius: 8px;
+  }
+  .dd-section-caret {
+    margin-left: auto; font-size: 0.6rem; color: var(--text-dim);
+    transition: transform 0.2s;
+  }
+  .dd-section.expanded .dd-section-caret { transform: rotate(90deg); }
+
+  .dd-tools { display: none; padding: 2px 0 6px 0; }
+  .dd-section.expanded .dd-tools { display: block; }
+
+  .dd-tool-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px 8px 40px;
+    color: var(--text); text-decoration: none;
+    font-size: 0.8rem; font-weight: 500;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s; margin: 0 8px;
+  }
+  .dd-tool-link:hover {
+    background: rgba(74, 140, 192, 0.12); color: var(--text-bright);
+  }
+  .dd-tool-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--success); flex-shrink: 0;
+  }
+  .dd-tool-dot.planned { background: var(--text-dim); opacity: 0.3; }
+  .dd-tool-label { font-size: 0.6rem; color: var(--text-dim); margin-left: auto; font-family: var(--mono); }
+  .dd-divider { height: 1px; background: rgba(42, 85, 133, 0.25); margin: 6px 16px; }
+
+  /* ═══════════ MOUNTAIN BANNER ═══════════ */
+  .mountain-banner {
+    position: relative;
+    width: 100%; height: 380px;
+    overflow: hidden;
+    margin-top: 56px;
+  }
+  .mountain-banner img {
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: center center;
+  }
+  .mountain-banner::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(14, 28, 51, 0) 0%,
+      rgba(14, 28, 51, 0) 55%,
+      rgba(14, 28, 51, 0.6) 80%,
+      rgba(14, 28, 51, 1) 100%
+    );
+  }
+
+  /* ═══════════ HERO ═══════════ */
+  .hero {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 0 40px 40px;
+    margin-top: -100px;
+    max-width: 800px;
+    margin-left: auto; margin-right: auto;
+  }
+  .alpine-mark {
+    display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 14px;
+    margin-bottom: 10px;
+  }
+  .alpine-icon { width: 48px; height: 48px; }
+  .alpine-icon svg { width: 100%; height: 100%; filter: drop-shadow(0 3px 12px rgba(46,126,199,0.25)); }
+  .logo {
+    font-size: 2.8rem; font-weight: 800; letter-spacing: -1px;
+    color: var(--text-bright);
+  }
+  .logo span {
+    font-weight: 300;
+    background: var(--gradient-ice);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-tagline {
+    font-size: 1.15rem; font-weight: 600;
+    background: var(--gradient-ice);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 16px; letter-spacing: 0.5px;
+  }
+  /* ═══════════ X LINK BUBBLES ═══════════ */
+  .x-links {
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px; flex-wrap: wrap;
+  }
+  .x-bubble {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px;
+    background: rgba(18, 32, 56, 0.7);
+    border: 1px solid rgba(42, 85, 133, 0.5);
+    border-radius: 28px;
+    text-decoration: none; color: var(--text);
+    font-size: 0.82rem; font-weight: 500;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .x-bubble:hover {
+    border-color: var(--border-glow);
+    background: rgba(18, 30, 50, 0.9);
+    color: var(--text-bright);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .x-bubble svg { width: 16px; height: 16px; fill: var(--accent3); flex-shrink: 0; }
+
+  /* ═══════════ MAIN CONTENT ═══════════ */
+  .main {
+    position: relative; z-index: 1;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+  }
+
+  .mission {
+    margin-bottom: 56px;
+    max-width: 820px;
+    margin-left: auto; margin-right: auto;
+  }
+  .mission h2 {
+    font-size: 1.2rem; font-weight: 700; color: var(--text-bright);
+    margin-bottom: 20px; text-align: center;
+    letter-spacing: 0.3px;
+  }
+  .mission p {
+    font-size: 0.92rem; color: var(--text-dim); line-height: 1.75;
+    text-align: left;
+  }
+  .mission p + p { margin-top: 16px; }
+  .mission .disclaimer {
+    font-size: 0.78rem; color: rgba(126, 160, 200, 0.55);
+    font-style: italic; margin-top: 22px;
+    text-align: left;
+  }
+
+  .section-cards {
+    display: flex; flex-direction: column;
+    gap: 24px;
+  }
+  .section-card {
+    display: flex; gap: 24px;
+    padding: 36px 36px 32px;
+    background: rgba(18, 32, 56, 0.6);
+    border: 1px solid rgba(42, 85, 133, 0.4);
+    border-radius: var(--radius);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    position: relative; overflow: hidden;
+  }
+  .section-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+    background: var(--gradient-ice); opacity: 0.6;
+  }
+  .sc-num {
+    font-family: var(--mono);
+    font-size: 2rem; font-weight: 800;
+    background: var(--gradient-ice);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.4;
+    line-height: 1; min-width: 48px;
+    padding-top: 2px;
+  }
+  .sc-body { flex: 1; }
+  .sc-title {
+    font-size: 1.1rem; font-weight: 700; color: var(--text-bright);
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sc-title .tool-count {
+    font-family: var(--mono); font-size: 0.62rem;
+    color: var(--accent2); background: rgba(106,173,224,0.10);
+    border: 1px solid rgba(106,173,224,0.18);
+    padding: 2px 8px; border-radius: 8px;
+  }
+  .sc-subtitle {
+    font-size: 0.82rem; color: var(--accent3);
+    font-weight: 600; margin-bottom: 12px;
+    letter-spacing: 0.02em;
+  }
+  .sc-desc {
+    font-size: 0.9rem; color: var(--text-dim); line-height: 1.7;
+  }
+  .sc-tools {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 12px;
+  }
+  .sc-tool-tag {
+    font-family: var(--mono); font-size: 0.7rem;
+    padding: 4px 12px; border-radius: 8px;
+    background: rgba(74, 140, 192, 0.08);
+    border: 1px solid rgba(74, 140, 192, 0.15);
+    color: var(--text-dim);
+  }
+
+  /* ═══════════ FOOTER ═══════════ */
+  .footer {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 32px 40px 48px;
+    border-top: 1px solid rgba(42, 85, 133, 0.2);
+    max-width: 1080px; margin: 0 auto;
+  }
+  .footer p {
+    font-size: 0.78rem; color: var(--text-dim); line-height: 1.8;
+  }
+  .footer strong { color: var(--accent3); }
+  .footer .ver {
+    font-family: var(--mono);
+    font-size: 0.65rem; color: rgba(126, 160, 200, 0.40);
+    margin-top: 8px;
+  }
+
+  /* ═══════════ RESPONSIVE ═══════════ */
+  @media (max-width: 768px) {
+    .nav { padding: 0 16px; }
+    .mountain-banner { height: 240px; }
+    .hero { padding: 0 20px 32px; margin-top: -70px; }
+    .logo { font-size: 1.8rem; }
+    .alpine-mark { gap: 10px; }
+    .alpine-icon { width: 36px; height: 36px; }
+    .hero-tagline { font-size: 0.95rem; }
+    .main { padding: 40px 20px 60px; }
+    .section-card { flex-direction: column; gap: 12px; padding: 22px; }
+    .x-links { gap: 10px; }
+    .x-bubble { padding: 8px 14px; font-size: 0.76rem; }
+    .dropdown { width: 100%; border-radius: 0; }
+    .validator-link span { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ NAVIGATION ═══════════ -->
+<nav class="nav">
+  <div class="nav-brand" id="navBrand" onclick="toggleDropdown()">
+    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="nG" x1="32" y1="56" x2="32" y2="4" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#1a3d68"/><stop offset="25%" stop-color="#2a6098"/><stop offset="55%" stop-color="#4a8cc0"/><stop offset="80%" stop-color="#a0d4f0"/><stop offset="100%" stop-color="#ffffff"/>
+      </linearGradient></defs>
+      <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#nG)"/>
+      <path d="M32 4L25 18h14L32 4z" fill="#fff" opacity="0.85"/>
+      <path d="M32 4L27 15h10L32 4z" fill="#fff" opacity="0.95"/>
+    </svg>
+    <span class="nav-brand-text">ALPINE <em>DIGITAL</em></span>
+    <svg class="nav-caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M2 3.5 L5 6.5 L8 3.5"/>
+    </svg>
+  </div>
+  <div class="nav-right">
+    <a class="validator-link" href="https://validator.info/terra-classic/terravaloper12drl99s75jslgmk48v9fpqxqjadye2dfrgyasw" target="_blank" rel="noopener">
+      <span class="validator-dot"></span>
+      <span>Validator Active</span>
+    </a>
+  </div>
+</nav>
+
+<!-- Dropdown overlay -->
+<div class="dropdown-overlay" id="ddOverlay" onclick="toggleDropdown()"></div>
+
+<!-- Dropdown menu -->
+<div class="dropdown" id="dropdown">
+  <div class="dd-section" data-section="thesis">
+    <button class="dd-section-btn" onclick="toggleSection(this)">
+      <span class="dd-section-num">01</span> Investment Thesis
+      <span class="dd-section-caret">&#9654;</span>
+    </button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="01-InvestmentThesis/History.html"><span class="dd-tool-dot"></span> History of Terra Luna</a>
+      <a class="dd-tool-link" href="01-InvestmentThesis/Emergence.html"><span class="dd-tool-dot"></span> The Emergence of LUNC</a>
+      <a class="dd-tool-link" href="01-InvestmentThesis/Compelling.html"><span class="dd-tool-dot"></span> What Makes LUNC Compelling</a>
+      <a class="dd-tool-link" href="01-InvestmentThesis/Catalysts.html"><span class="dd-tool-dot"></span> Key Catalysts</a>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="evaluation">
+    <button class="dd-section-btn" onclick="toggleSection(this)">
+      <span class="dd-section-num">02</span> Evaluation &amp; Scenario
+      <span class="dd-section-caret">&#9654;</span>
+    </button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="02-EvaluationScenario/BinomialPricingModel.html"><span class="dd-tool-dot"></span> Binomial Pricing Model</a>
+      <div class="dd-tool-link" style="cursor:default;opacity:0.4"><span class="dd-tool-dot planned"></span> Monte Carlo Simulator <span class="dd-tool-label">planned</span></div>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="portfolio">
+    <button class="dd-section-btn" onclick="toggleSection(this)">
+      <span class="dd-section-num">03</span> Portfolio Management
+      <span class="dd-section-caret">&#9654;</span>
+    </button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="03-PortfolioManagement/WalletAnalyzer.html"><span class="dd-tool-dot"></span> Portfolio Analyzer</a>
+      <a class="dd-tool-link" href="04-Utilities/WalletScanner.html"><span class="dd-tool-dot"></span> Wallet Analyzer</a>
+      <a class="dd-tool-link" href="03-PortfolioManagement/ModelPortfolios.html"><span class="dd-tool-dot"></span> Alpine Digital Model Portfolios</a>
+      <a class="dd-tool-link" href="02-EvaluationScenario/ScenarioAnalysis.html"><span class="dd-tool-dot"></span> LUNC Profit Scenario Analysis</a>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="utilities">
+    <button class="dd-section-btn" onclick="toggleSection(this)">
+      <span class="dd-section-num">04</span> Utilities
+      <span class="dd-section-caret">&#9654;</span>
+    </button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="04-Utilities/SeedGenerator.html"><span class="dd-tool-dot"></span> Wallet Generator</a>
+      <a class="dd-tool-link" href="04-Utilities/WalletProviders.html"><span class="dd-tool-dot"></span> Wallet Providers</a>
+      <a class="dd-tool-link" href="04-Utilities/DEXLinks.html"><span class="dd-tool-dot"></span> DEX Links</a>
+      <a class="dd-tool-link" href="04-Utilities/CEXLinks.html"><span class="dd-tool-dot"></span> CEX Links</a>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="intelligence">
+    <button class="dd-section-btn" onclick="toggleSection(this)">
+      <span class="dd-section-num">05</span> Luna Classic Intelligence
+      <span class="dd-section-caret">&#9654;</span>
+    </button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="05-LunaClassicIntel/BlockchainIntel.html"><span class="dd-tool-dot"></span> Blockchain Explorer</a>
+      <a class="dd-tool-link" href="05-LunaClassicIntel/ValidatorIntel.html"><span class="dd-tool-dot"></span> Validator Intelligence</a>
+      <a class="dd-tool-link" href="05-LunaClassicIntel/TokenHolders.html"><span class="dd-tool-dot planned"></span> Top Token Holders <span class="dd-tool-label">planned</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MOUNTAIN BANNER ═══════════ -->
+<div class="mountain-banner">
+  <img src="Images/Alpine_Digital 1.jpeg" alt="Alpine mountain peak" />
+</div>
+
+<!-- ═══════════ HERO ═══════════ -->
+<header class="hero">
+  <div class="alpine-mark">
+    <div class="alpine-icon">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="aGrad" x1="32" y1="56" x2="32" y2="4" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#1a3d68"/><stop offset="25%" stop-color="#2a6098"/><stop offset="55%" stop-color="#4a8cc0"/><stop offset="80%" stop-color="#a0d4f0"/><stop offset="100%" stop-color="#ffffff"/>
+        </linearGradient></defs>
+        <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#aGrad)"/>
+        <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="none" stroke="rgba(200,230,255,0.3)" stroke-width="1"/>
+        <path d="M22 44l10-20 10 20" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+        <path d="M32 4L24 20h16L32 4z" fill="#ffffff" opacity="0.85"/>
+        <path d="M32 4L27 15h10L32 4z" fill="#ffffff" opacity="0.95"/>
+      </svg>
+    </div>
+    <div class="logo">ALPINE <span>DIGITAL</span></div>
+  </div>
+  <div class="hero-tagline">See Things Differently. See Things Clearly.</div>
+  <div class="x-links">
+    <a class="x-bubble" href="https://x.com/i/communities/1850416104897671653" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      Alpine Digital Community
+    </a>
+    <a class="x-bubble" href="https://x.com/LUNCStrategist" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      LUNC Strategist
+    </a>
+    <a class="x-bubble" href="https://x.com/LUNCStrategist/articles" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      The Asymmetric Investor
+    </a>
+  </div>
+</header>
+
+<!-- ═══════════ MAIN CONTENT ═══════════ -->
+<main class="main">
+
+  <div class="mission">
+    <h2>Our Mission</h2>
+    <p>Alpine Digital is a cryptocurrency investment group focused on decentralised finance. We go deep — identifying specific DeFi ecosystems where we see exceptional long-term value from both an investment returns and ecosystem growth perspective, and committing fully to building within them.</p>
+    <p>Today, our primary focus is the Luna Classic ecosystem, which we believe represents the most positively asymmetric opportunity in the digital asset space. We launched an independent validator on the network, participate actively in on-chain governance, and contribute directly to the development and strategic direction of the ecosystem.</p>
+    <p>Our audience is institutional investors, family offices, ultra-high-net-worth individuals, and venture capital firms — participants who want to evaluate this opportunity with the same rigour they apply to any other asset class. This site provides the analytical tools, market intelligence, and ecosystem context that a sophisticated investor needs to form a thesis, size a position, and engage with confidence.</p>
+    <p class="disclaimer">Nothing on this site constitutes investment advice. You should always consult with a qualified financial advisor before making any investment decisions. This is a resource for research, for sharpening your analytical edge, and for engaging with the Luna Classic ecosystem on a deeper level.</p>
+  </div>
+
+  <div class="section-cards">
+
+    <div class="section-card">
+      <div class="sc-num">01</div>
+      <div class="sc-body">
+        <div class="sc-title">Investment Thesis <span class="tool-count">4 pages</span></div>
+        <div class="sc-subtitle">Foundation &amp; Conviction</div>
+        <div class="sc-desc">The starting point. Before pricing models, portfolio construction, or any of the tools that follow, you need to decide whether this ecosystem merits your attention — and your capital. This section presents the full narrative: from the original Terra Luna vision through the May 2022 crisis, the emergence of Luna Classic as an independent chain, the structural characteristics that make it compelling, and the specific catalysts we are monitoring.</div>
+        <div class="sc-tools">
+          <span class="sc-tool-tag">History of Terra Luna</span>
+          <span class="sc-tool-tag">Emergence of LUNC</span>
+          <span class="sc-tool-tag">What Makes LUNC Compelling</span>
+          <span class="sc-tool-tag">Key Catalysts</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="sc-num">02</div>
+      <div class="sc-body">
+        <div class="sc-title">Evaluation &amp; Scenario Analysis <span class="tool-count">1 tool + 1 planned</span></div>
+        <div class="sc-subtitle">Price Discovery on Your Terms</div>
+        <div class="sc-desc">These tools help you interrogate the market price — to understand what recovery scenarios are already embedded in current valuations, and where the market may be mispricing the probability of specific outcomes. You define the scenarios and assign the probabilities; the models translate those assumptions into implied fair values so you can decide whether the current price represents an opportunity or something to avoid.</div>
+        <div class="sc-tools">
+          <span class="sc-tool-tag">Binomial Pricing Model</span>
+          <span class="sc-tool-tag" style="opacity:0.4">Monte Carlo Simulator (planned)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="sc-num">03</div>
+      <div class="sc-body">
+        <div class="sc-title">Portfolio Management <span class="tool-count">4 tools</span></div>
+        <div class="sc-subtitle">Institutional-Grade Visibility</div>
+        <div class="sc-desc">Aggregate holdings across multiple wallets, explore Alpine Digital model portfolios, model payout profiles under different price scenarios, and analyse your positions with the kind of consolidated, multi-wallet visibility that a professional allocator expects from any asset class.</div>
+        <div class="sc-tools">
+          <span class="sc-tool-tag">Portfolio Analyzer</span>
+          <span class="sc-tool-tag">Wallet Analyzer</span>
+          <span class="sc-tool-tag">Model Portfolios</span>
+          <span class="sc-tool-tag">LUNC Profit Scenario</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="sc-num">04</div>
+      <div class="sc-body">
+        <div class="sc-title">Utilities <span class="tool-count">4 items</span></div>
+        <div class="sc-subtitle">Operational Infrastructure</div>
+        <div class="sc-desc">The operational layer. Seed phrase generation with Shamir sharding support, curated wallet provider guides, and direct links to both decentralised and centralised exchanges — everything you need to move from interest to informed engagement with the ecosystem.</div>
+        <div class="sc-tools">
+          <span class="sc-tool-tag">Wallet Generator</span>
+          <span class="sc-tool-tag">Wallet Providers</span>
+          <span class="sc-tool-tag">DEX Links</span>
+          <span class="sc-tool-tag">CEX Links</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="sc-num">05</div>
+      <div class="sc-body">
+        <div class="sc-title">Luna Classic Intelligence <span class="tool-count">2 tools + 1 planned</span></div>
+        <div class="sc-subtitle">On-Chain Data &amp; Network Visibility</div>
+        <div class="sc-desc">Direct access to real-time blockchain data, validator performance metrics, staking distributions, and whale wallet tracking. These tools query the Terra Classic network directly — giving you the raw data infrastructure to monitor network health, identify accumulation patterns, and make informed decisions based on what is actually happening on-chain rather than what the market narrative suggests.</div>
+        <div class="sc-tools">
+          <span class="sc-tool-tag">Blockchain Explorer</span>
+          <span class="sc-tool-tag">Validator Intelligence</span>
+          <span class="sc-tool-tag" style="opacity:0.4">Top Token Holders (planned)</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="footer">
+  <p>Built by <strong>Alpine Digital</strong> &mdash; Independent LUNC Validator</p>
+  <p class="ver">v5.0 &middot; March 2026</p>
+</footer>
+
+<!-- ═══════════ SCRIPTS ═══════════ -->
+<script>
+  const brand = document.getElementById('navBrand');
+  const dropdown = document.getElementById('dropdown');
+  const overlay = document.getElementById('ddOverlay');
+
+  function toggleDropdown() {
+    const isOpen = dropdown.classList.contains('open');
+    dropdown.classList.toggle('open');
+    overlay.classList.toggle('open');
+    brand.classList.toggle('open');
+    if (!isOpen) {
+      const expanded = dropdown.querySelector('.dd-section.expanded');
+      if (!expanded) {
+        const first = dropdown.querySelector('.dd-section');
+        if (first) first.classList.add('expanded');
+      }
+    }
+  }
+
+  function toggleSection(btn) {
+    const section = btn.closest('.dd-section');
+    section.classList.toggle('expanded');
+  }
+
+  // Close dropdown when clicking a tool link
+  dropdown.querySelectorAll('.dd-tool-link[href]').forEach(link => {
+    link.addEventListener('click', () => {
+      dropdown.classList.remove('open');
+      overlay.classList.remove('open');
+      brand.classList.remove('open');
+    });
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && dropdown.classList.contains('open')) {
+      toggleDropdown();
+    }
+  });
+</script>
+
+</body>
+</html>

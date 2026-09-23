@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpine Digital - Binomial Pricing Model</title>
+<style>
+:root {
+  --bg: #0b1526; --surface: #101d32; --surface2: #16263f; --surface3: #1c3050;
+  --border: #1e3a62; --border-glow: #3a7cc6;
+  --text: #c8daf0; --text-dim: #6b8cb8; --text-bright: #ffffff;
+  --accent: #2e7ec7; --accent2: #4a9de8; --accent3: #8cc8f5;
+  --ice: #b0daff; --snow: #daeeff; --success: #34d399;
+  --gradient-ice: linear-gradient(135deg, #1a4a80, #2e7ec7, #5eaeff);
+  --radius: 12px; --radius-sm: 8px;
+  --mono: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+  --sans: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --pos:#8cc8f5;--pos-bg:rgba(140,200,245,.12);--pos-border:rgba(140,200,245,.3);
+  --neg:#1a3a62;--neg-text:#4a6a90;--neg-bg:rgba(26,58,98,.2);--neg-border:rgba(26,58,98,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;width:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden}
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;padding:0 32px;height:56px;background:rgba(11,21,38,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(30,58,98,0.3)}.nav-brand{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;color:#fff;text-decoration:none;padding:8px 0}.nav-brand svg:first-child{width:26px;height:26px;flex-shrink:0}.nav-brand-text{font-size:.9rem;font-weight:700;letter-spacing:.4px}.nav-brand-text em{font-style:normal;font-weight:300;color:#1a4a80}.nav-caret{width:10px;height:10px;margin-left:4px;transition:transform .2s ease}.nav-brand.open .nav-caret{transform:rotate(180deg)}.nav-right{margin-left:auto}.validator-link{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.68rem;color:var(--text-dim);text-decoration:none;padding:4px 12px;border-radius:14px;background:rgba(46,126,199,.06);border:1px solid rgba(46,126,199,.12);transition:all .2s}.validator-link:hover{color:var(--accent3);border-color:rgba(46,126,199,.3)}.validator-dot{width:5px;height:5px;border-radius:50%;background:var(--success);box-shadow:0 0 6px rgba(52,211,153,.4);animation:pulse 2.5s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}.dropdown-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.3)}.dropdown-overlay.open{display:block}.dropdown{display:none;position:fixed;top:56px;left:0;z-index:190;width:340px;background:rgba(14,24,42,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(30,58,98,.4);border-top:none;border-radius:0 0 12px 12px;box-shadow:0 16px 48px rgba(0,0,0,.5);padding:12px 0;max-height:calc(100vh - 56px);overflow-y:auto}.dropdown.open{display:block}.dd-section{padding:0 8px}.dd-section-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;background:none;border:none;color:var(--ice);font-family:var(--sans);font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-radius:8px;transition:background .15s}.dd-section-btn:hover{background:rgba(30,58,98,.2)}.dd-section-num{font-family:var(--mono);font-size:.6rem;color:var(--accent2);background:rgba(74,157,232,.08);border:1px solid rgba(74,157,232,.15);padding:2px 7px;border-radius:8px}.dd-section-caret{margin-left:auto;font-size:.6rem;color:var(--text-dim);transition:transform .2s}.dd-section.expanded .dd-section-caret{transform:rotate(90deg)}.dd-tools{display:none;padding:2px 0 6px}.dd-section.expanded .dd-tools{display:block}.dd-tool-link{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 40px;color:var(--text);text-decoration:none;font-size:.8rem;font-weight:500;border-radius:8px;transition:all .15s;margin:0 8px}.dd-tool-link:hover{background:rgba(46,126,199,.1);color:#fff}.dd-tool-dot{width:5px;height:5px;border-radius:50%;background:var(--success);flex-shrink:0}.dd-tool-dot.planned{background:var(--text-dim);opacity:.3}.dd-tool-label{font-size:.6rem;color:var(--text-dim);margin-left:auto;font-family:var(--mono)}.dd-divider{height:1px;background:rgba(30,58,98,.25);margin:6px 16px}
+.mountain-banner{position:relative;width:100%;height:220px;overflow:hidden;margin-top:56px}.mountain-banner img{width:100%;height:100%;object-fit:cover;object-position:center}.mountain-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,21,38,0) 0%,rgba(11,21,38,0) 40%,rgba(11,21,38,.6) 70%,rgba(11,21,38,1) 100%)}
+.footer{position:relative;z-index:1;text-align:center;padding:32px 40px 48px;border-top:1px solid rgba(30,58,98,.2);max-width:1080px;margin:0 auto}.footer p{font-size:.78rem;color:var(--text-dim);line-height:1.8}.footer strong{color:var(--accent3)}.footer .ver{font-family:var(--mono);font-size:.65rem;color:rgba(107,140,184,.35);margin-top:8px}
+.content-wrapper{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:24px}
+header{margin-bottom:36px;padding-top:0}
+.header-content{display:flex;align-items:center;gap:20px;margin-bottom:8px}
+.alpine-icon{width:60px;height:60px;flex-shrink:0}
+.header-text h1{font-size:32px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px}
+.header-text h1 span{color:var(--text-dim)}
+.header-text p{color:var(--text-dim);font-size:14px}
+.badge-group{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.badge{font-size:12px;padding:4px 12px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--accent3)}
+.card{background:rgba(16,29,50,.82);border:1px solid rgba(30,58,98,.5);border-radius:var(--radius);margin-bottom:24px;position:relative;overflow:hidden;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-ice)}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);font-size:16px;font-weight:600;color:var(--text-bright);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-content{padding:20px}
+button{padding:10px 16px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text-bright)}
+.btn-primary{background:var(--gradient-ice)}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(46,126,199,.3)}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text)}.btn-secondary:hover{background:var(--surface3);border-color:var(--border-glow)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.button-group{display:flex;gap:8px;flex-wrap:wrap}
+.horizon-toggle{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.horizon-btn{flex:1;padding:12px 20px;background:var(--surface2);color:var(--text-dim);font-size:14px;font-weight:700;cursor:pointer;border:none;border-right:1px solid var(--border);transition:all .2s;font-family:inherit;text-align:center}
+.horizon-btn:last-child{border-right:none}
+.horizon-btn.active{background:var(--accent);color:#fff}
+.horizon-btn:hover:not(.active){background:var(--surface3);color:var(--text)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px}
+.form-group input,.form-group select{padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--mono);font-size:13px}
+.form-group input:focus{outline:none;border-color:var(--border-glow);background:var(--surface3)}
+.form-group .hint{font-size:10px;color:var(--text-dim);margin-top:2px}
+.scenario-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.scenario-bar .label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-right:8px}
+.scenario-pill{padding:6px 14px;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface3);color:var(--text-dim);transition:all .2s}
+.scenario-pill:hover{border-color:var(--border-glow);color:var(--text)}
+.scenario-pill.active{background:var(--accent);border-color:var(--accent2);color:#fff}
+.node-section{margin-bottom:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.node-section h3{font-size:14px;color:var(--accent3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.node-section .yr-badge{background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700}
+.node-row{display:grid;grid-template-columns:180px 1fr;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(30,58,98,.3)}
+.node-row:last-child{border-bottom:none}
+.node-path{font-family:var(--mono);font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:6px}
+.arrow-up{color:var(--pos);font-weight:700}.arrow-dn{color:var(--neg-text);font-weight:700}
+.node-row input{width:100%;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:13px;text-align:right}
+.node-row input:focus{border-color:var(--border-glow);outline:none}
+.prob-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.prob-row label{font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px;display:block}
+.prob-row input{width:100%;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:13px}
+.prob-row input:focus{border-color:var(--border-glow);outline:none}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:800px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center}
+.stat-card .stat-value{font-size:18px;font-weight:700;color:var(--text-bright);font-family:var(--mono);margin-bottom:2px}
+.stat-card .stat-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+.stat-card.highlight{border-color:var(--accent2);background:linear-gradient(135deg,rgba(46,126,199,.12),rgba(74,157,232,.05))}
+.stat-card.pos-result{border-color:var(--pos-border);background:var(--pos-bg)}
+.stat-card.neg-result{border-color:var(--neg-border);background:var(--neg-bg)}
+.val-pos{color:var(--pos)}.val-neg{color:var(--neg-text)}
+.comp-wrap{display:flex;align-items:flex-end;justify-content:center;gap:50px;padding:30px 0;min-height:280px}
+.comp-col{display:flex;flex-direction:column;align-items:center;gap:8px;width:130px}
+.comp-bar-shell{width:70px;height:220px;background:rgba(26,58,98,.2);border-radius:12px;position:relative;overflow:hidden;display:flex;align-items:flex-end;border:1px solid rgba(30,58,98,.3)}
+.comp-fill{width:100%;border-radius:12px 12px 0 0;transition:height .8s ease;min-height:4px}
+.comp-val{font-family:var(--mono);font-size:15px;font-weight:700;text-align:center}
+.comp-lbl{font-size:12px;color:var(--text-dim);text-align:center}
+.delta-pill{display:inline-block;padding:8px 24px;border-radius:24px;font-size:14px;font-weight:700;font-family:var(--mono);margin-top:20px}
+.delta-pill.pos{background:var(--pos-bg);color:var(--pos);border:1px solid var(--pos-border)}
+.delta-pill.neg{background:var(--neg-bg);color:var(--neg-text);border:1px solid var(--neg-border)}
+.delta-pill.fair{background:rgba(74,157,232,.12);color:var(--accent3);border:1px solid rgba(74,157,232,.25)}
+.tree-scroll{overflow-x:auto;padding:10px 0}
+.tree-svg text{font-family:var(--mono)}
+.live-price{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;color:var(--accent3)}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+.security-notice{margin-top:32px;padding:16px 20px;background:rgba(16,29,50,.82);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-dim);backdrop-filter:blur(20px)}
+.hidden{display:none !important}
+.strategist-tag{font-size:11px;color:var(--accent3);font-style:italic;margin-left:8px}
+@media(max-width:600px){.content-wrapper{padding:12px}.stats-grid{grid-template-columns:1fr 1fr}.comp-wrap{gap:24px}.comp-bar-shell{height:160px}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="../index.html" id="navBrand" onclick="toggleDropdown(); return false;">
+    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="nG" x1="32" y1="56" x2="32" y2="4" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#081a3a"/><stop offset="30%" stop-color="#0f2e5e"/><stop offset="60%" stop-color="#2e7ec7"/><stop offset="85%" stop-color="#c8dff5"/><stop offset="100%" stop-color="#ffffff"/>
+      </linearGradient></defs>
+      <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#nG)"/>
+      <path d="M32 4L25 18h14L32 4z" fill="#fff" opacity="0.85"/>
+      <path d="M32 4L27 15h10L32 4z" fill="#fff" opacity="0.95"/>
+    </svg>
+    <span class="nav-brand-text">ALPINE <em>DIGITAL</em></span>
+    <svg class="nav-caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 3.5 L5 6.5 L8 3.5"/></svg>
+  </a>
+  <div class="nav-right">
+    <a class="validator-link" href="https://validator.info/terra-classic/terravaloper12drl99s75jslgmk48v9fpqxqjadye2dfrgyasw" target="_blank" rel="noopener">
+      <span class="validator-dot"></span><span>Validator Active</span>
+    </a>
+  </div>
+</nav>
+<div class="dropdown-overlay" id="ddOverlay" onclick="toggleDropdown()"></div>
+<div class="dropdown" id="dropdown">
+  <div class="dd-section" data-section="thesis">
+    <button class="dd-section-btn" onclick="toggleSection(this)"><span class="dd-section-num">01</span> Investment Thesis <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../01-InvestmentThesis/History.html"><span class="dd-tool-dot"></span> History of Terra Luna</a>
+      <a class="dd-tool-link" href="../01-InvestmentThesis/Emergence.html"><span class="dd-tool-dot"></span> The Emergence of LUNC</a>
+      <a class="dd-tool-link" href="../01-InvestmentThesis/Compelling.html"><span class="dd-tool-dot"></span> What Makes LUNC Compelling</a>
+      <a class="dd-tool-link" href="../01-InvestmentThesis/Catalysts.html"><span class="dd-tool-dot"></span> Key Catalysts</a>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="evaluation">
+    <button class="dd-section-btn" onclick="toggleSection(this)"><span class="dd-section-num">02</span> Evaluation &amp; Scenario <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../02-EvaluationScenario/BinomialPricingModel.html"><span class="dd-tool-dot"></span> Binomial Pricing Model</a>
+      <div class="dd-tool-link" style="cursor:default;opacity:0.4"><span class="dd-tool-dot planned"></span> Monte Carlo Simulator <span class="dd-tool-label">planned</span></div>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="portfolio">
+    <button class="dd-section-btn" onclick="toggleSection(this)"><span class="dd-section-num">03</span> Portfolio Management <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../03-PortfolioManagement/WalletAnalyzer.html"><span class="dd-tool-dot"></span> Portfolio Analyzer</a>
+      <a class="dd-tool-link" href="../04-Utilities/WalletScanner.html"><span class="dd-tool-dot"></span> Wallet Analyzer</a>
+      <a class="dd-tool-link" href="../03-PortfolioManagement/ModelPortfolios.html"><span class="dd-tool-dot"></span> Alpine Digital Model Portfolios</a>
+      <a class="dd-tool-link" href="../02-EvaluationScenario/ScenarioAnalysis.html"><span class="dd-tool-dot"></span> LUNC Profit Scenario Analysis</a>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="utilities">
+    <button class="dd-section-btn" onclick="toggleSection(this)"><span class="dd-section-num">04</span> Utilities <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../04-Utilities/SeedGenerator.html"><span class="dd-tool-dot"></span> Wallet Generator</a>
+      <a class="dd-tool-link" href="../04-Utilities/WalletProviders.html"><span class="dd-tool-dot"></span> Wallet Providers</a>
+      <a class="dd-tool-link" href="../04-Utilities/DEXLinks.html"><span class="dd-tool-dot"></span> DEX Links</a>
+      <a class="dd-tool-link" href="../04-Utilities/CEXLinks.html"><span class="dd-tool-dot"></span> CEX Links</a>
+    </div>
+  </div>
+</div>
+
+<div class="mountain-banner"><img src="../Images/Background.jpg" alt=""></div>
+
+<div class="content-wrapper">
+<header>
+    <div class="header-content">
+        <svg class="alpine-icon" viewBox="0 0 64 64" fill="none"><defs><linearGradient id="aGrad" x1="16" y1="56" x2="48" y2="8"><stop offset="0%" stop-color="#0f2e5e"/><stop offset="40%" stop-color="#2e7ec7"/><stop offset="100%" stop-color="#8cc8f5"/></linearGradient></defs><path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#aGrad)"/><path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="none" stroke="#a3d5ff" stroke-width="1" opacity=".4"/><path d="M22 44l10-20 10 20" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/><path d="M32 4L25 18h14L32 4z" fill="#fff" opacity=".5"/></svg>
+        <div class="header-text"><h1>ALPINE <span>DIGITAL</span></h1><p>Binomial Pricing Model</p></div>
+    </div>
+    <p style="color:var(--text-dim);font-size:13px;margin-top:12px;">LUNC Fair Value Estimator — Option Pricing Theory <span class="strategist-tag">by LUNC Strategist</span></p>
+    <div class="badge-group"><div class="badge">Binomial Tree</div><div class="badge">Expected Value</div><div class="badge">Risk-Neutral</div><div class="badge">LUNC</div></div>
+</header>
+
+<!-- Parameters -->
+<div class="card">
+    <div class="card-header">
+        Market Data & Parameters
+        <div class="live-price"><div class="live-dot"></div> <span id="livePrice">Fetching...</span></div>
+    </div>
+    <div class="card-content">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Current LUNC Price (USD)</label>
+                <input type="number" id="currentPrice" step="any" placeholder="0.00008">
+                <div class="hint">Auto-fetched or enter manually</div>
+            </div>
+            <div class="form-group">
+                <label>Risk-Free Discount Rate (Annual %)</label>
+                <input type="number" id="discountRate" value="5" step="0.1" min="0" max="50">
+                <div class="hint">Discount future EV back to present value</div>
+            </div>
+        </div>
+        <div class="form-group" style="margin-top:8px;">
+            <label>Time Horizon</label>
+            <div class="horizon-toggle">
+                <button class="horizon-btn" data-h="1" onclick="setHorizon(1)">1 Year</button>
+                <button class="horizon-btn" data-h="3" onclick="setHorizon(3)">3 Year</button>
+                <button class="horizon-btn active" data-h="5" onclick="setHorizon(5)">5 Year</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scenario Manager + Node Inputs -->
+<div class="card">
+    <div class="card-header">
+        Price Expectations
+        <button class="btn-secondary btn-sm" onclick="exportScenarios()">Save Scenarios</button>
+    </div>
+    <div class="card-content">
+        <div class="scenario-bar">
+            <span class="label">Load Scenario:</span>
+            <div class="scenario-pill active" data-s="base" onclick="loadScenario('base')">Base Case</div>
+            <div class="scenario-pill" data-s="bull" onclick="loadScenario('bull')">Bull Case</div>
+            <div class="scenario-pill" data-s="bear" onclick="loadScenario('bear')">Bear Case</div>
+            <div class="scenario-pill" data-s="custom" onclick="loadScenario('custom')">Custom</div>
+            <button class="btn-secondary btn-sm" style="margin-left:auto;" onclick="saveCurrentAsCustom()">Save as Custom</button>
+        </div>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">Enter the price you expect LUNC to be at each node. Set P(Up) at each branching point. The model backward-induces expected values discounted at your risk-free rate.</p>
+
+        <!-- Y1: always visible -->
+        <div class="node-section" id="sec_y1">
+            <h3><span class="yr-badge">Year 1</span> Two Outcomes</h3>
+            <div class="node-row"><div class="node-path"><span class="arrow-up">&#9650;</span> Up</div><input type="number" id="n1U" step="any"></div>
+            <div class="node-row"><div class="node-path"><span class="arrow-dn">&#9660;</span> Down</div><input type="number" id="n1D" step="any"></div>
+            <div class="prob-row">
+                <div><label>P(Up) Year 0 → 1</label><input type="number" id="p0" step="0.1" min="0" max="100" value="40" oninput="syncP('p0')"></div>
+                <div><label>P(Down)</label><input type="number" id="p0d" disabled style="opacity:.5"></div>
+            </div>
+        </div>
+
+        <!-- Y3: visible for 3yr and 5yr -->
+        <div class="node-section" id="sec_y3">
+            <h3><span class="yr-badge">Year 3</span> Three Outcomes (recombining)</h3>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">UU = two up moves &bull; UD/DU = one each (same node) &bull; DD = two down</div>
+            <div class="node-row"><div class="node-path"><span class="arrow-up">&#9650;&#9650;</span> Up-Up</div><input type="number" id="n3UU" step="any"></div>
+            <div class="node-row"><div class="node-path"><span class="arrow-up">&#9650;</span><span class="arrow-dn">&#9660;</span> Up-Down</div><input type="number" id="n3UD" step="any"></div>
+            <div class="node-row"><div class="node-path"><span class="arrow-dn">&#9660;&#9660;</span> Down-Down</div><input type="number" id="n3DD" step="any"></div>
+            <div class="prob-row">
+                <div><label>P(Up) Year 1 → 3</label><input type="number" id="p1" step="0.1" min="0" max="100" value="35" oninput="syncP('p1')"></div>
+                <div><label>P(Down)</label><input type="number" id="p1d" disabled style="opacity:.5"></div>
+            </div>
+        </div>
+
+        <!-- Y5: visible for 5yr only -->
+        <div class="node-section" id="sec_y5">
+            <h3><span class="yr-badge">Year 5</span> Four Outcomes (recombining)</h3>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Each Y3 node branches. Recombining paths merge: UUU, 2U1D, 1U2D, DDD</div>
+            <div class="node-row"><div class="node-path"><span class="arrow-up">&#9650;&#9650;&#9650;</span> Three Up</div><input type="number" id="n5UUU" step="any"></div>
+            <div class="node-row"><div class="node-path"><span class="arrow-up">&#9650;&#9650;</span><span class="arrow-dn">&#9660;</span> Two Up, One Down</div><input type="number" id="n5UUD" step="any"></div>
+            <div class="node-row"><div class="node-path"><span class="arrow-up">&#9650;</span><span class="arrow-dn">&#9660;&#9660;</span> One Up, Two Down</div><input type="number" id="n5UDD" step="any"></div>
+            <div class="node-row"><div class="node-path"><span class="arrow-dn">&#9660;&#9660;&#9660;</span> Three Down</div><input type="number" id="n5DDD" step="any"></div>
+            <div class="prob-row">
+                <div><label>P(Up) Year 3 → 5</label><input type="number" id="p2" step="0.1" min="0" max="100" value="30" oninput="syncP('p2')"></div>
+                <div><label>P(Down)</label><input type="number" id="p2d" disabled style="opacity:.5"></div>
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-top:20px;">
+            <button class="btn-primary" onclick="runModel()" style="padding:14px 48px;font-size:15px;">Run Pricing Model</button>
+        </div>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="card hidden" id="resultsCard">
+    <div class="card-header">Valuation Results <button class="btn-secondary btn-sm" onclick="exportCSV()">Export CSV</button></div>
+    <div class="card-content"><div id="summaryStats"></div><div id="compChart" style="text-align:center;"></div></div>
+</div>
+
+<!-- Tree -->
+<div class="card hidden" id="treeCard">
+    <div class="card-header">Binomial Tree</div>
+    <div class="card-content" style="padding:10px;"><div class="tree-scroll" id="treeContainer"></div></div>
+</div>
+
+<div class="security-notice">
+    <strong>Disclaimer:</strong> Educational and analytical purposes only. Not financial advice. All calculations local in browser.
+</div>
+</div>
+
+<footer class="footer">
+  <p>Built by <strong>Alpine Digital</strong> &mdash; Independent LUNC Validator</p>
+  <p class="ver">v4.0 &middot; March 2026</p>
+</footer>
+
+<script>
+function toggleDropdown(){const b=document.getElementById('navBrand'),d=document.getElementById('dropdown'),o=document.getElementById('ddOverlay'),isOpen=d.classList.contains('open');d.classList.toggle('open');o.classList.toggle('open');b.classList.toggle('open');if(!isOpen){const ex=d.querySelector('.dd-section.expanded');if(!ex){const f=d.querySelector('.dd-section');if(f)f.classList.add('expanded')}}}
+function toggleSection(btn){btn.closest('.dd-section').classList.toggle('expanded')}
+document.getElementById('dropdown').querySelectorAll('.dd-tool-link[href]').forEach(l=>{l.addEventListener('click',()=>toggleDropdown())});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const d=document.getElementById('dropdown');if(d.classList.contains('open'))toggleDropdown()}});
+</script>
+
+<script>
+let luncPrice = 0;
+let horizon = 5;
+
+// ═══ Saved scenarios (persisted to localStorage) ═══
+const DEFAULT_SCENARIOS = {
+    bull: { label:'Bull Case', p0:55, p1:50, p2:45,
+        n1U:5, n1D:0.7, n3UU:30, n3UD:2, n3DD:0.3, n5UUU:200, n5UUD:15, n5UDD:0.8, n5DDD:0.05 },
+    base: { label:'Base Case', p0:40, p1:35, p2:30,
+        n1U:3, n1D:0.5, n3UU:15, n3UD:1, n3DD:0.15, n5UUU:80, n5UUD:5, n5UDD:0.3, n5DDD:0.02 },
+    bear: { label:'Bear Case', p0:25, p1:20, p2:15,
+        n1U:1.5, n1D:0.3, n3UU:4, n3UD:0.5, n3DD:0.05, n5UUU:10, n5UUD:1, n5UDD:0.1, n5DDD:0.005 },
+    custom: { label:'Custom', p0:40, p1:35, p2:30,
+        n1U:3, n1D:0.5, n3UU:15, n3UD:1, n3DD:0.15, n5UUU:80, n5UUD:5, n5UDD:0.3, n5DDD:0.02 },
+};
+let scenarios = JSON.parse(JSON.stringify(DEFAULT_SCENARIOS));
+try { const s = JSON.parse(localStorage.getItem('alpine_lunc_scenarios')); if (s) Object.assign(scenarios, s); } catch(e){}
+let activeScenario = 'base';
+
+function fmtP(p) {
+    if (p===0) return '$0';
+    if (p>=1) return '$'+p.toFixed(2);
+    if (p>=0.01) return '$'+p.toFixed(4);
+    if (p>=0.0001) return '$'+p.toFixed(6);
+    if (p>=1e-7) return '$'+p.toFixed(8);
+    return '$'+p.toExponential(2);
+}
+function fmtPct(r) { return (r*100).toFixed(1)+'%'; }
+function fmtMult(x) { return isFinite(x)&&!isNaN(x) ? (x>=100?x.toFixed(0)+'x':x>=10?x.toFixed(1)+'x':x.toFixed(2)+'x') : '—'; }
+
+function syncP(id) { document.getElementById(id+'d').value = (100-(parseFloat(document.getElementById(id).value)||0)).toFixed(1); }
+
+// ═══ HORIZON ═══
+function setHorizon(h) {
+    horizon = h;
+    document.querySelectorAll('.horizon-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.h)===h));
+    document.getElementById('sec_y3').classList.toggle('hidden', h < 3);
+    document.getElementById('sec_y5').classList.toggle('hidden', h < 5);
+}
+
+// ═══ SCENARIOS ═══
+function loadScenario(key) {
+    activeScenario = key;
+    document.querySelectorAll('.scenario-pill').forEach(p => p.classList.toggle('active', p.dataset.s===key));
+    const s = scenarios[key];
+    const b = parseFloat(document.getElementById('currentPrice').value) || luncPrice || 0.00008;
+    // Multiply stored factors by current price
+    document.getElementById('n1U').value = (b * s.n1U).toFixed(8);
+    document.getElementById('n1D').value = (b * s.n1D).toFixed(8);
+    document.getElementById('n3UU').value = (b * s.n3UU).toFixed(8);
+    document.getElementById('n3UD').value = (b * s.n3UD).toFixed(8);
+    document.getElementById('n3DD').value = (b * s.n3DD).toFixed(8);
+    document.getElementById('n5UUU').value = (b * s.n5UUU).toFixed(8);
+    document.getElementById('n5UUD').value = (b * s.n5UUD).toFixed(8);
+    document.getElementById('n5UDD').value = (b * s.n5UDD).toFixed(8);
+    document.getElementById('n5DDD').value = (b * s.n5DDD).toFixed(8);
+    document.getElementById('p0').value = s.p0; syncP('p0');
+    document.getElementById('p1').value = s.p1; syncP('p1');
+    document.getElementById('p2').value = s.p2; syncP('p2');
+}
+
+function saveCurrentAsCustom() {
+    const b = parseFloat(document.getElementById('currentPrice').value) || luncPrice || 0.00008;
+    if (b <= 0) return;
+    scenarios.custom = {
+        label:'Custom',
+        p0: parseFloat(document.getElementById('p0').value)||40,
+        p1: parseFloat(document.getElementById('p1').value)||35,
+        p2: parseFloat(document.getElementById('p2').value)||30,
+        n1U: parseFloat(document.getElementById('n1U').value)/b,
+        n1D: parseFloat(document.getElementById('n1D').value)/b,
+        n3UU: parseFloat(document.getElementById('n3UU').value)/b,
+        n3UD: parseFloat(document.getElementById('n3UD').value)/b,
+        n3DD: parseFloat(document.getElementById('n3DD').value)/b,
+        n5UUU: parseFloat(document.getElementById('n5UUU').value)/b,
+        n5UUD: parseFloat(document.getElementById('n5UUD').value)/b,
+        n5UDD: parseFloat(document.getElementById('n5UDD').value)/b,
+        n5DDD: parseFloat(document.getElementById('n5DDD').value)/b,
+    };
+    localStorage.setItem('alpine_lunc_scenarios', JSON.stringify(scenarios));
+    loadScenario('custom');
+    alert('Custom scenario saved.');
+}
+
+function exportScenarios() {
+    const blob = new Blob([JSON.stringify(scenarios, null, 2)], { type:'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'lunc_strategist_scenarios.json'; a.click();
+}
+
+// ═══ MODEL ═══
+function runModel() {
+    const S0 = parseFloat(document.getElementById('currentPrice').value) || luncPrice || 0.00008;
+    const r = (parseFloat(document.getElementById('discountRate').value) || 5) / 100;
+    const pUp0 = (parseFloat(document.getElementById('p0').value)||40)/100;
+    const pUp1 = (parseFloat(document.getElementById('p1').value)||35)/100;
+    const pUp2 = (parseFloat(document.getElementById('p2').value)||30)/100;
+
+    const v = (id) => parseFloat(document.getElementById(id).value) || 0;
+    const df1 = 1/(1+r);
+    const df2 = Math.pow(1+r,-2);
+
+    let modelPrice, termEV, treeInfo;
+
+    if (horizon === 1) {
+        modelPrice = df1 * (pUp0 * v('n1U') + (1-pUp0) * v('n1D'));
+        termEV = pUp0 * v('n1U') + (1-pUp0) * v('n1D');
+        treeInfo = { h:1, S0, modelPrice, termEV, r, pUp0,
+            nodes: [[{val:modelPrice,lbl:'Now',ev:true}],[{val:v('n1U'),lbl:'U'},{val:v('n1D'),lbl:'D'}]],
+            edges: [[[0,0,'up'],[0,1,'dn']]],
+            probs: [pUp0],
+            colLabels: ['Year 0','Year 1'],
+        };
+    } else if (horizon === 3) {
+        const ev1U = df2 * (pUp1 * v('n3UU') + (1-pUp1) * v('n3UD'));
+        const ev1D = df2 * (pUp1 * v('n3UD') + (1-pUp1) * v('n3DD'));
+        modelPrice = df1 * (pUp0 * ev1U + (1-pUp0) * ev1D);
+        termEV = pUp0*pUp1*v('n3UU') + (pUp0*(1-pUp1)+(1-pUp0)*pUp1)*v('n3UD') + (1-pUp0)*(1-pUp1)*v('n3DD');
+        treeInfo = { h:3, S0, modelPrice, termEV, r, pUp0, pUp1,
+            nodes: [
+                [{val:modelPrice,lbl:'Now',ev:true}],
+                [{val:ev1U,lbl:'U',ev:true},{val:ev1D,lbl:'D',ev:true}],
+                [{val:v('n3UU'),lbl:'UU'},{val:v('n3UD'),lbl:'UD'},{val:v('n3DD'),lbl:'DD'}],
+            ],
+            edges: [[[0,0,'up'],[0,1,'dn']],[[0,0,'up'],[0,1,'dn'],[1,1,'up'],[1,2,'dn']]],
+            probs: [pUp0, pUp1],
+            colLabels: ['Year 0','Year 1','Year 3'],
+        };
+    } else {
+        const ev3UU = df2*(pUp2*v('n5UUU')+(1-pUp2)*v('n5UUD'));
+        const ev3UD = df2*(pUp2*v('n5UUD')+(1-pUp2)*v('n5UDD'));
+        const ev3DD = df2*(pUp2*v('n5UDD')+(1-pUp2)*v('n5DDD'));
+        const ev1U = df2*(pUp1*ev3UU+(1-pUp1)*ev3UD);
+        const ev1D = df2*(pUp1*ev3UD+(1-pUp1)*ev3DD);
+        modelPrice = df1*(pUp0*ev1U+(1-pUp0)*ev1D);
+        termEV = pUp0*pUp1*pUp2*v('n5UUU')
+            + (pUp0*pUp1*(1-pUp2)+pUp0*(1-pUp1)*pUp2+(1-pUp0)*pUp1*pUp2)*v('n5UUD')
+            + (pUp0*(1-pUp1)*(1-pUp2)+(1-pUp0)*pUp1*(1-pUp2)+(1-pUp0)*(1-pUp1)*pUp2)*v('n5UDD')
+            + (1-pUp0)*(1-pUp1)*(1-pUp2)*v('n5DDD');
+        treeInfo = { h:5, S0, modelPrice, termEV, r, pUp0, pUp1, pUp2,
+            nodes: [
+                [{val:modelPrice,lbl:'Now',ev:true}],
+                [{val:ev1U,lbl:'U',ev:true},{val:ev1D,lbl:'D',ev:true}],
+                [{val:ev3UU,lbl:'UU',ev:true},{val:ev3UD,lbl:'UD',ev:true},{val:ev3DD,lbl:'DD',ev:true}],
+                [{val:v('n5UUU'),lbl:'UUU'},{val:v('n5UUD'),lbl:'UUD'},{val:v('n5UDD'),lbl:'UDD'},{val:v('n5DDD'),lbl:'DDD'}],
+            ],
+            edges: [
+                [[0,0,'up'],[0,1,'dn']],
+                [[0,0,'up'],[0,1,'dn'],[1,1,'up'],[1,2,'dn']],
+                [[0,0,'up'],[0,1,'dn'],[1,1,'up'],[1,2,'dn'],[2,2,'up'],[2,3,'dn']],
+            ],
+            probs: [pUp0, pUp1, pUp2],
+            colLabels: ['Year 0','Year 1','Year 3','Year 5'],
+        };
+    }
+
+    renderResults(treeInfo);
+    renderTree(treeInfo);
+    document.getElementById('resultsCard').classList.remove('hidden');
+    document.getElementById('treeCard').classList.remove('hidden');
+    document.getElementById('resultsCard').scrollIntoView({ behavior:'smooth' });
+}
+
+// ═══ RESULTS ═══
+function renderResults(t) {
+    const pctDiff = t.S0>0 ? ((t.modelPrice-t.S0)/t.S0*100) : 0;
+    const isPos = t.modelPrice >= t.S0;
+    const cls = Math.abs(pctDiff)<5 ? 'fair' : isPos ? 'pos' : 'neg';
+    const statCls = Math.abs(pctDiff)<5 ? '' : isPos ? 'pos-result' : 'neg-result';
+    const valCls = Math.abs(pctDiff)<5 ? '' : isPos ? 'val-pos' : 'val-neg';
+    const verdict = Math.abs(pctDiff)<5 ? 'Fairly Priced' : isPos ? 'Underpriced' : 'Overpriced';
+    const ratio = t.S0>0 ? t.modelPrice/t.S0 : 0;
+
+    document.getElementById('summaryStats').innerHTML = `<div class="stats-grid">
+        <div class="stat-card highlight"><div class="stat-value">${fmtP(t.modelPrice)}</div><div class="stat-label">Model Fair Value (PV)</div></div>
+        <div class="stat-card"><div class="stat-value">${fmtP(t.S0)}</div><div class="stat-label">Market Price</div></div>
+        <div class="stat-card ${statCls}"><div class="stat-value ${valCls}">${pctDiff>=0?'+':''}${pctDiff.toFixed(1)}%</div><div class="stat-label">${verdict}</div></div>
+        <div class="stat-card"><div class="stat-value">${fmtMult(ratio)}</div><div class="stat-label">Model / Market</div></div>
+    </div>`;
+
+    const maxV = Math.max(t.modelPrice, t.S0);
+    const bH = 200;
+    const mH = maxV>0 ? Math.max(6, t.modelPrice/maxV*bH) : 6;
+    const sH = maxV>0 ? Math.max(6, t.S0/maxV*bH) : 6;
+    const mCol = isPos ? 'var(--pos)' : 'var(--neg)';
+    const deltaText = Math.abs(pctDiff)<5 ? 'Fair Value (±5%)'
+        : isPos ? `Underpriced — ${fmtMult(ratio)} potential` : `Overpriced by ${Math.abs(pctDiff).toFixed(0)}%`;
+
+    document.getElementById('compChart').innerHTML = `
+        <div class="comp-wrap">
+            <div class="comp-col"><div class="comp-val" style="color:${mCol}">${fmtP(t.modelPrice)}</div>
+                <div class="comp-bar-shell"><div class="comp-fill" style="height:${mH}px;background:${mCol};"></div></div>
+                <div class="comp-lbl">Your Model</div></div>
+            <div class="comp-col"><div class="comp-val" style="color:var(--accent3)">${fmtP(t.S0)}</div>
+                <div class="comp-bar-shell"><div class="comp-fill" style="height:${sH}px;background:var(--accent2);"></div></div>
+                <div class="comp-lbl">Market Price</div></div>
+        </div>
+        <span class="delta-pill ${cls}">${deltaText}</span>`;
+}
+
+// ═══ TREE ═══
+function renderTree(t) {
+    const cols = t.nodes.length;
+    const container = document.getElementById('treeContainer');
+    const containerW = container.parentElement.clientWidth - 20;
+
+    const NR = 58;
+    const NRy = 34;
+    const pad = 30;
+    const colGap = Math.max(160, (containerW - pad*2 - NR*2) / Math.max(cols-1, 1));
+    const maxRows = t.nodes[cols-1].length;
+    const rowGap = Math.max(20, Math.min(70, 300 / maxRows));
+    const svgW = Math.max(containerW, (cols-1)*colGap + NR*2 + pad*2);
+    const svgH = Math.max(300, maxRows*(NRy*2+rowGap) + pad*2 + 30);
+
+    const nodeColors = [
+        { fill:'#3a8ad8', stroke:'#5eaeff' },
+        { fill:'#2a6ab8', stroke:'#4a9de8' },
+        { fill:'#1e4a80', stroke:'#3a7cc6' },
+        { fill:'#142e52', stroke:'#2e5a8a' },
+        { fill:'#0e2240', stroke:'#1e3a62' },
+    ];
+    function nodeColor(row, total) {
+        const t = total<=1 ? 0 : row/(total-1);
+        const i = Math.min(nodeColors.length-1, Math.round(t*(nodeColors.length-1)));
+        return nodeColors[i];
+    }
+
+    function nodePos(col, row) {
+        const count = t.nodes[col].length;
+        const totalH = count*NRy*2 + (count-1)*rowGap;
+        const startY = (svgH-30-totalH)/2;
+        return { x: pad + col*colGap, y: startY + row*(NRy*2+rowGap) + NRy };
+    }
+
+    let svg = `<svg class="tree-svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
+    svg += `<defs>
+        <filter id="ng"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#2e7ec7" flood-opacity="0.25"/></filter>
+    </defs>`;
+
+    for (let c=0; c<t.edges.length; c++) {
+        const pUp = t.probs[c];
+        t.edges[c].forEach(([from,to,dir])=>{
+            const p1=nodePos(c,from), p2=nodePos(c+1,to);
+            const x1=p1.x+NR, y1=p1.y, x2=p2.x-NR, y2=p2.y;
+            const isUp = dir==='up';
+            const col = isUp ? 'var(--pos)' : '#2a4a70';
+            const prob = isUp ? pUp : 1-pUp;
+            svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="2" opacity=".55"/>`;
+            const mx=(x1+x2)/2, my=(y1+y2)/2;
+            const off = isUp ? -8 : 12;
+            svg += `<text x="${mx}" y="${my+off}" text-anchor="middle" fill="${col}" font-size="10" font-weight="600" opacity=".9">p=${(prob*100).toFixed(0)}%</text>`;
+        });
+    }
+
+    for (let c=0; c<cols; c++) {
+        t.nodes[c].forEach((n,r)=>{
+            const pos = nodePos(c,r);
+            const cx=pos.x, cy=pos.y;
+            const isRoot = c===0;
+            const nc = nodeColor(r, t.nodes[c].length);
+            const filt = isRoot ? 'filter="url(#ng)"' : '';
+
+            svg += `<g class="tree-node">`;
+            svg += `<ellipse cx="${cx}" cy="${cy}" rx="${NR}" ry="${NRy}" fill="${nc.fill}" stroke="${nc.stroke}" stroke-width="1.5" ${filt} rx="${NR}" ry="${NRy}"/>`;
+            svg += `<text x="${cx}" y="${cy-2}" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">${fmtP(n.val)}</text>`;
+            if (n.ev) svg += `<text x="${cx}" y="${cy+12}" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="9">EV</text>`;
+            svg += `<text x="${cx}" y="${cy-NRy-6}" text-anchor="middle" fill="var(--text-dim)" font-size="9" font-weight="600">${n.lbl}</text>`;
+            svg += `</g>`;
+        });
+    }
+
+    for (let c=0; c<cols; c++) {
+        svg += `<text x="${pad+c*colGap}" y="${svgH-6}" text-anchor="middle" fill="var(--text-dim)" font-size="11" font-weight="700">${t.colLabels[c]}</text>`;
+    }
+
+    svg += '</svg>';
+    container.innerHTML = svg;
+}
+
+// ═══ EXPORT ═══
+function exportCSV() {
+    let csv = 'Alpine Digital Binomial Pricing Model - LUNC Strategist\n';
+    csv += `Date,${new Date().toISOString()}\nHorizon,${horizon} years\n`;
+    csv += `Current Price,${document.getElementById('currentPrice').value}\n`;
+    csv += `Discount Rate,${document.getElementById('discountRate').value}%\n\n`;
+    ['n1U','n1D','n3UU','n3UD','n3DD','n5UUU','n5UUD','n5UDD','n5DDD'].forEach(id=>{
+        csv += `${id},${document.getElementById(id).value}\n`;
+    });
+    csv += `P(Up) 0-1,${document.getElementById('p0').value}%\n`;
+    csv += `P(Up) 1-3,${document.getElementById('p1').value}%\n`;
+    csv += `P(Up) 3-5,${document.getElementById('p2').value}%\n`;
+    const blob = new Blob([csv],{type:'text/csv'}); const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download=`lunc_binomial_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+// ═══ LIVE PRICE ═══
+async function fetchPrice() {
+    try {
+        const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=terra-luna&vs_currencies=usd');
+        if (r.ok) { const d=await r.json(); if(d['terra-luna']?.usd){ luncPrice=d['terra-luna'].usd; document.getElementById('currentPrice').value=luncPrice; document.getElementById('livePrice').textContent=fmtP(luncPrice)+' LUNC'; }}
+    } catch(e) { document.getElementById('livePrice').textContent='Enter manually'; }
+}
+
+// ═══ INIT ═══
+fetchPrice().then(()=>{ if(!luncPrice){luncPrice=0.00008;document.getElementById('currentPrice').value=luncPrice;} loadScenario('base'); setHorizon(5); });
+setTimeout(()=>{ if(!luncPrice){luncPrice=0.00008;document.getElementById('currentPrice').value=luncPrice;loadScenario('base');setHorizon(5);} },2000);
+</script>
+
+</body>
+</html>

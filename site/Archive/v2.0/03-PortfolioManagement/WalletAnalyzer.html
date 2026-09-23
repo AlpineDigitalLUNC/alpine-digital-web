@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpine Digital - Wallet Analyzer</title>
+    <style>
+        :root{--bg:#060d1a;--surface:#0c1829;--surface2:#111f36;--surface3:#182a48;--border:#1e3a62;--border-glow:#3a7cc6;--text:#c8daf0;--text-dim:#6b8cb8;--text-bright:#fff;--accent:#2e7ec7;--accent2:#4a9de8;--accent3:#8cc8f5;--ice:#b0daff;--snow:#daeeff;--success:#34d399;--warning:#7b9ab8;--danger:#f87171;--gradient-ice:linear-gradient(135deg,#1a4a80,#2e7ec7,#5eaeff);--radius:12px;--radius-sm:8px;--mono:'SF Mono',SFMono-Regular,Consolas,'Liberation Mono',monospace}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;overflow-x:hidden}
+
+        /* ─── MASTER NAV BAR ─── */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: linear-gradient(180deg, rgba(6,13,26,0.98), rgba(12,24,41,0.95));
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-bright);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .nav-brand::before {
+            content: '▲';
+            color: var(--accent2);
+            font-size: 16px;
+        }
+
+        .nav-divider {
+            width: 1px;
+            height: 32px;
+            background: var(--border);
+            margin: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-left: 24px;
+            flex: 1;
+        }
+
+        .nav-item {
+            position: relative;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover {
+            color: var(--text-bright);
+        }
+
+        .nav-dropdown-toggle::after {
+            content: ' ▼';
+            font-size: 10px;
+            opacity: 0.6;
+            transition: transform 0.2s;
+        }
+
+        .nav-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 8px 0;
+            margin-top: 8px;
+            min-width: 200px;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+        }
+
+        .nav-item.active .nav-dropdown {
+            display: block;
+        }
+
+        .nav-item.active .nav-dropdown-toggle::after {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-item {
+            padding: 8px 16px;
+            color: var(--text-dim);
+            text-decoration: none;
+            display: block;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: var(--surface2);
+            color: var(--accent3);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 0;
+        }
+
+        /* ─── MOUNTAIN BANNER ─── */
+        .mountain-banner {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            height: 220px;
+            background: linear-gradient(135deg, rgba(26, 74, 128, 0.4), rgba(46, 126, 199, 0.3));
+            z-index: 1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .mountain-banner svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ─── PAGE CONTENT WRAPPER ─── */
+        body > *:not(.navbar):not(.mountain-banner):not(script):not(.copy-toast) {
+            margin-top: 284px;
+        }
+
+        /* ─── MASTER FOOTER ─── */
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 24px;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 12px;
+            margin-top: 64px;
+        }
+
+        .footer a {
+            color: var(--accent3);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: var(--text-bright);
+        }
+
+        .mountain-bg{display:none;}
+        .container{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:24px}
+        header{margin-bottom:32px;padding-top:20px}
+        .header-content{display:flex;align-items:center;gap:20px;margin-bottom:8px}
+        .alpine-icon{width:60px;height:60px;flex-shrink:0}
+        .header-text h1{font-size:32px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px}
+        .header-text h1 span{color:var(--text-dim)}
+        .header-text p{color:var(--text-dim);font-size:14px}
+        .badge-group{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+        .badge{font-size:12px;padding:4px 12px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--accent3)}
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:24px;position:relative;overflow:hidden}
+        .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-ice)}
+        .card-header{padding:16px 20px;border-bottom:1px solid var(--border);font-size:16px;font-weight:600;color:var(--text-bright);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+        .card-content{padding:20px}
+        button{padding:10px 16px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text-bright)}
+        .btn-primary{background:var(--gradient-ice)}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(46,126,199,.3)}
+        .btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text)}.btn-secondary:hover{background:var(--surface3);border-color:var(--border-glow)}
+        .btn-sm{padding:6px 12px;font-size:12px}
+        .button-group{display:flex;gap:8px;flex-wrap:wrap}
+        /* Search bar */
+        .wallet-search{display:flex;gap:10px;align-items:center}
+        .wallet-input{flex:1;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--mono);font-size:14px}
+        .wallet-input:focus{outline:none;border-color:var(--border-glow);background:var(--surface3)}
+        .wallet-input::placeholder{color:var(--text-dim);opacity:.5}
+        /* Tabs */
+        .view-tabs{display:flex;gap:0;margin-bottom:0}
+        .view-tab{padding:10px 20px;background:var(--surface2);border:1px solid var(--border);border-bottom:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;transition:all .2s}
+        .view-tab.active{background:var(--surface);color:var(--accent3);border-color:var(--border-glow)}
+        .view-tab:hover:not(.active){color:var(--text);background:var(--surface3)}
+        /* Stats */
+        .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+        @media(max-width:1024px){.stats-grid{grid-template-columns:repeat(3,1fr)}}
+        @media(max-width:640px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+        .stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center}
+        .stat-card .stat-value{font-size:18px;font-weight:700;color:var(--text-bright);font-family:var(--mono);margin-bottom:2px}
+        .stat-card .stat-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+        .stat-card.highlight{border-color:var(--accent2);background:linear-gradient(135deg,rgba(46,126,199,.1),rgba(74,157,232,.05))}
+        /* Table */
+        .table-scroll{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;background:var(--surface2);border-radius:var(--radius-sm);overflow:hidden}
+        thead th{background:var(--surface3);padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer}
+        thead th:hover{color:var(--accent3)}
+        tbody td{padding:8px 10px;border-bottom:1px solid rgba(30,58,98,.3);font-size:12px;vertical-align:middle}
+        tbody tr:last-child td{border-bottom:none}
+        tbody tr:hover{background:rgba(46,126,199,.05)}
+        tbody tr.tx-out{border-left:3px solid var(--danger)}
+        tbody tr.tx-in{border-left:3px solid var(--success)}
+        tbody tr.tx-contract{border-left:3px solid var(--accent2)}
+        .mono-val{font-family:var(--mono);font-size:11px;white-space:nowrap}
+        .tx-type-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;display:inline-block}
+        .tx-send{background:rgba(248,113,113,.15);color:var(--danger)}
+        .tx-recv{background:rgba(52,211,153,.15);color:var(--success)}
+        .tx-delegate{background:rgba(74,157,232,.15);color:var(--accent2)}
+        .tx-exec{background:rgba(140,200,245,.15);color:var(--accent3)}
+        .tx-other{background:rgba(123,154,184,.15);color:var(--warning)}
+        /* Pagination */
+        .pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px}
+        .page-info{font-size:12px;color:var(--text-dim);font-family:var(--mono)}
+        /* Graph */
+        #graphContainer{width:100%;height:600px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);position:relative;overflow:hidden}
+        #graphSvg{width:100%;height:100%;cursor:grab}
+        #graphSvg:active{cursor:grabbing}
+        .graph-controls{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:4px;z-index:10}
+        .graph-controls button{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--surface);border:1px solid var(--border);color:var(--text)}
+        .node-tooltip{position:absolute;background:var(--surface);border:1px solid var(--border-glow);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;pointer-events:none;z-index:20;max-width:300px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+        .node-tooltip .tt-addr{font-family:var(--mono);color:var(--accent3);font-size:11px;word-break:break-all}
+        .node-tooltip .tt-label{color:var(--text-bright);font-weight:600;margin-bottom:2px}
+        .node-tooltip .tt-stat{color:var(--text-dim);font-size:11px}
+        /* Label editor */
+        .label-row{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(30,58,98,.3)}
+        .label-row:last-child{border-bottom:none}
+        .label-addr{font-family:var(--mono);font-size:11px;color:var(--accent3);min-width:140px;cursor:pointer}
+        .label-name{flex:1;padding:4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px}
+        .label-name:focus{border-color:var(--border-glow);outline:none}
+        .label-del{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:2px 6px}
+        .label-del:hover{color:var(--danger)}
+        /* Progress */
+        .progress-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-top:8px}
+        .progress-fill{height:100%;background:var(--gradient-ice);border-radius:2px;transition:width .3s;width:0%}
+        .progress-text{font-size:12px;color:var(--text-dim);margin-top:4px;font-family:var(--mono)}
+        .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent3);border-radius:50%;animation:spin .8s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .loading-overlay{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--text-dim);font-size:14px}
+        .copy-toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:var(--text-bright);padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+        .copy-toast.show{opacity:1}
+        .security-notice{margin-top:32px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-dim)}
+        .hidden{display:none !important}
+        .addr-link{color:var(--accent3);cursor:pointer;font-family:var(--mono);font-size:11px}
+        .addr-link:hover{text-decoration:underline}
+        /* History nav */
+        .history-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+        .history-chip{padding:4px 10px;background:var(--surface3);border:1px solid var(--border);border-radius:14px;font-size:11px;color:var(--accent3);cursor:pointer;font-family:var(--mono);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .history-chip:hover{border-color:var(--border-glow)}
+        .history-chip.current{border-color:var(--accent2);color:var(--text-bright)}
+        @media(max-width:768px){.container{padding:12px}td,th{padding:4px 6px;font-size:11px}.stats-grid{grid-template-columns:1fr 1fr}#graphContainer{height:400px}}
+
+        /* ─── ALPINE DIGITAL MASTER NAV/BANNER/FOOTER ─── */
+        .alpine-nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;padding:0 32px;height:56px;background:rgba(11,21,38,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(30,58,98,0.3)}
+        .alpine-nav .nav-brand{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;color:#fff;text-decoration:none;padding:8px 0}
+        .alpine-nav .nav-brand svg:first-child{width:26px;height:26px;flex-shrink:0}
+        .alpine-nav .nav-brand-text{font-size:.9rem;font-weight:700;letter-spacing:.4px}
+        .alpine-nav .nav-brand-text em{font-style:normal;font-weight:300;color:#1a4a80}
+        .alpine-nav .nav-caret{width:10px;height:10px;margin-left:4px;transition:transform .2s}
+        .alpine-nav .nav-brand.open .nav-caret{transform:rotate(180deg)}
+        .alpine-nav .nav-right{margin-left:auto}
+        .alpine-nav .validator-link{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.68rem;color:var(--text-dim);text-decoration:none;padding:4px 12px;border-radius:14px;background:rgba(46,126,199,.06);border:1px solid rgba(46,126,199,.12);transition:all .2s}
+        .alpine-nav .validator-link:hover{color:var(--accent3);border-color:rgba(46,126,199,.3)}
+        .alpine-nav .validator-dot{width:5px;height:5px;border-radius:50%;background:var(--success);box-shadow:0 0 6px rgba(52,211,153,.4);animation:adpulse 2.5s ease-in-out infinite}
+        @keyframes adpulse{0%,100%{opacity:.5}50%{opacity:1}}
+        .ad-dropdown-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.3)}
+        .ad-dropdown-overlay.open{display:block}
+        .ad-dropdown{display:none;position:fixed;top:56px;left:0;z-index:190;width:340px;background:rgba(14,24,42,.96);backdrop-filter:blur(24px);border:1px solid rgba(30,58,98,.4);border-top:none;border-radius:0 0 12px 12px;box-shadow:0 16px 48px rgba(0,0,0,.5);padding:12px 0;max-height:calc(100vh - 56px);overflow-y:auto}
+        .ad-dropdown.open{display:block}
+        .ad-dropdown .dd-section{padding:0 8px}
+        .ad-dropdown .dd-section-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;background:none;border:none;color:var(--ice);font-family:var(--sans);font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-radius:8px;transition:background .15s}
+        .ad-dropdown .dd-section-btn:hover{background:rgba(30,58,98,.2)}
+        .ad-dropdown .dd-section-num{font-family:var(--mono);font-size:.6rem;color:var(--accent2);background:rgba(74,157,232,.08);border:1px solid rgba(74,157,232,.15);padding:2px 7px;border-radius:8px}
+        .ad-dropdown .dd-section-caret{margin-left:auto;font-size:.6rem;color:var(--text-dim);transition:transform .2s}
+        .ad-dropdown .dd-section.expanded .dd-section-caret{transform:rotate(90deg)}
+        .ad-dropdown .dd-tools{display:none;padding:2px 0 6px}
+        .ad-dropdown .dd-section.expanded .dd-tools{display:block}
+        .ad-dropdown .dd-tool-link{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 40px;color:var(--text);text-decoration:none;font-size:.8rem;font-weight:500;border-radius:8px;transition:all .15s;margin:0 8px}
+        .ad-dropdown .dd-tool-link:hover{background:rgba(46,126,199,.1);color:#fff}
+        .ad-dropdown .dd-tool-dot{width:5px;height:5px;border-radius:50%;background:var(--success);flex-shrink:0}
+        .ad-dropdown .dd-tool-dot.planned{background:var(--text-dim);opacity:.3}
+        .ad-dropdown .dd-tool-label{font-size:.6rem;color:var(--text-dim);margin-left:auto;font-family:var(--mono)}
+        .ad-dropdown .dd-divider{height:1px;background:rgba(30,58,98,.25);margin:6px 16px}
+        .alpine-banner{position:relative;width:100%;height:220px;overflow:hidden;margin-top:56px}
+        .alpine-banner img{width:100%;height:100%;object-fit:cover;object-position:center}
+        .alpine-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,21,38,0) 0%,rgba(11,21,38,0) 40%,rgba(11,21,38,.6) 70%,rgba(11,21,38,1) 100%)}
+        .alpine-footer{position:relative;z-index:1;text-align:center;padding:32px 40px 48px;border-top:1px solid rgba(30,58,98,.2);max-width:1080px;margin:0 auto}
+        .alpine-footer p{font-size:.78rem;color:var(--text-dim);line-height:1.8}
+        .alpine-footer strong{color:var(--accent3)}
+        .alpine-footer .ver{font-family:var(--mono);font-size:.65rem;color:rgba(107,140,184,.35);margin-top:8px}
+    </style>
+</head>
+<body>
+<!-- Alpine Digital Nav -->
+<nav class="alpine-nav">
+  <a class="nav-brand" href="../index.html" id="adNavBrand" onclick="adToggleDropdown(); return false;">
+    <svg viewBox="0 0 64 64" fill="none"><defs><linearGradient id="nG" x1="32" y1="56" x2="32" y2="4" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#081a3a"/><stop offset="30%" stop-color="#0f2e5e"/><stop offset="60%" stop-color="#2e7ec7"/><stop offset="85%" stop-color="#c8dff5"/><stop offset="100%" stop-color="#fff"/></linearGradient></defs><path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#nG)"/><path d="M32 4L25 18h14L32 4z" fill="#fff" opacity=".85"/><path d="M32 4L27 15h10L32 4z" fill="#fff" opacity=".95"/></svg>
+    <span class="nav-brand-text">ALPINE <em>DIGITAL</em></span>
+    <svg class="nav-caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 3.5 L5 6.5 L8 3.5"/></svg>
+  </a>
+  <div class="nav-right">
+    <a class="validator-link" href="https://validator.info/terra-classic/terravaloper12drl99s75jslgmk48v9fpqxqjadye2dfrgyasw" target="_blank" rel="noopener"><span class="validator-dot"></span><span>Validator Active</span></a>
+  </div>
+</nav>
+<div class="ad-dropdown-overlay" id="adDdOverlay" onclick="adToggleDropdown()"></div>
+<div class="ad-dropdown" id="adDropdown">
+  <div class="dd-section" data-section="thesis">
+    <button class="dd-section-btn" onclick="adToggleSection(this)"><span class="dd-section-num">01</span> Investment Thesis <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../01-InvestmentThesis/History.html"><span class="dd-tool-dot"></span> History of Terra Luna</a>
+      <a class="dd-tool-link" href="../01-InvestmentThesis/Emergence.html"><span class="dd-tool-dot"></span> The Emergence of LUNC</a>
+      <a class="dd-tool-link" href="../01-InvestmentThesis/Compelling.html"><span class="dd-tool-dot"></span> What Makes LUNC Compelling</a>
+      <a class="dd-tool-link" href="../01-InvestmentThesis/Catalysts.html"><span class="dd-tool-dot"></span> Key Catalysts</a>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="evaluation">
+    <button class="dd-section-btn" onclick="adToggleSection(this)"><span class="dd-section-num">02</span> Evaluation &amp; Scenario <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../02-EvaluationScenario/BinomialPricingModel.html"><span class="dd-tool-dot"></span> Binomial Pricing Model</a>
+      <div class="dd-tool-link" style="cursor:default;opacity:0.4"><span class="dd-tool-dot planned"></span> Monte Carlo Simulator <span class="dd-tool-label">planned</span></div>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="portfolio">
+    <button class="dd-section-btn" onclick="adToggleSection(this)"><span class="dd-section-num">03</span> Portfolio Management <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../03-PortfolioManagement/WalletAnalyzer.html"><span class="dd-tool-dot"></span> Portfolio Analyzer</a>
+      <a class="dd-tool-link" href="../04-Utilities/WalletScanner.html"><span class="dd-tool-dot"></span> Wallet Analyzer</a>
+      <a class="dd-tool-link" href="../03-PortfolioManagement/ModelPortfolios.html"><span class="dd-tool-dot"></span> Alpine Digital Model Portfolios</a>
+      <a class="dd-tool-link" href="../02-EvaluationScenario/ScenarioAnalysis.html"><span class="dd-tool-dot"></span> LUNC Profit Scenario Analysis</a>
+    </div>
+  </div>
+  <div class="dd-divider"></div>
+  <div class="dd-section" data-section="utilities">
+    <button class="dd-section-btn" onclick="adToggleSection(this)"><span class="dd-section-num">04</span> Utilities <span class="dd-section-caret">&#9654;</span></button>
+    <div class="dd-tools">
+      <a class="dd-tool-link" href="../04-Utilities/SeedGenerator.html"><span class="dd-tool-dot"></span> Wallet Generator</a>
+      <a class="dd-tool-link" href="../04-Utilities/WalletProviders.html"><span class="dd-tool-dot"></span> Wallet Providers</a>
+      <a class="dd-tool-link" href="../04-Utilities/DEXLinks.html"><span class="dd-tool-dot"></span> DEX Links</a>
+      <a class="dd-tool-link" href="../04-Utilities/CEXLinks.html"><span class="dd-tool-dot"></span> CEX Links</a>
+    </div>
+  </div>
+</div>
+<div class="alpine-banner"><img src="../Images/Background.jpg" alt=""></div>
+<!-- End Alpine Digital Nav -->
+    <!-- MASTER NAVBAR -->
+    <nav class="navbar">
+        <a href="../../index.html" class="nav-brand">Alpine Digital</a>
+        <div class="nav-divider"></div>
+        <div class="nav-menu">
+            <div class="nav-item nav-dropdown-toggle" id="toolsMenu">Tools
+                <div class="nav-dropdown">
+                    <a href="../../02-EvaluationScenario/BinomialPricingModel.html" class="dropdown-item">Binomial Pricing Model</a>
+                    <a href="../../02-EvaluationScenario/ScenarioAnalysis.html" class="dropdown-item">Scenario Analysis</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="../../03-PortfolioManagement/WalletAnalyzer.html" class="dropdown-item">Wallet Analyzer</a>
+                    <a href="../../03-PortfolioManagement/TradePlanner.html" class="dropdown-item">Trade Planner</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MOUNTAIN BANNER -->
+    <div class="mountain-banner">
+        <svg viewBox="0 0 1440 220" preserveAspectRatio="xMidYMid slice">
+            <defs>
+                <linearGradient id="bannerMtn" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#4a9de8" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#0c1829" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+            <path fill="url(#bannerMtn)" d="M0,220 L0,120 L120,80 L240,100 L360,60 L480,90 L600,50 L720,80 L840,40 L960,75 L1080,50 L1200,85 L1320,55 L1440,90 L1440,220 Z"/>
+        </svg>
+    </div>
+
+    <div class="mountain-bg">
+        <svg viewBox="0 0 1440 420" preserveAspectRatio="none">
+            <defs>
+                <linearGradient id="mtnFar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a3a6a" stop-opacity=".3"/><stop offset="100%" stop-color="#0c1829" stop-opacity="0"/></linearGradient>
+                <linearGradient id="mtnMid" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e4a80" stop-opacity=".4"/><stop offset="100%" stop-color="#0c1829" stop-opacity="0"/></linearGradient>
+                <linearGradient id="mtnHorn" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0%" stop-color="#4a9de8" stop-opacity=".35"/><stop offset="30%" stop-color="#1e4a80" stop-opacity=".3"/><stop offset="100%" stop-color="#0c1829" stop-opacity="0"/></linearGradient>
+                <linearGradient id="snowCap" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity=".25"/><stop offset="100%" stop-color="#8cc8f5" stop-opacity=".05"/></linearGradient>
+            </defs>
+            <path fill="url(#mtnFar)" d="M0,420 L0,310 L80,270 L160,290 L260,240 L340,260 L420,220 L500,250 L580,210 L660,230 L740,200 L820,225 L900,195 L980,220 L1060,190 L1140,215 L1220,200 L1300,230 L1380,210 L1440,240 L1440,420Z"/>
+            <path fill="url(#mtnMid)" d="M0,420 L0,330 L100,280 L180,310 L280,250 L360,285 L450,230 L530,270 L600,220 L660,250 L700,210 L740,240 L800,200 L860,230 L940,180 L1020,220 L1100,190 L1180,230 L1260,210 L1340,250 L1440,220 L1440,420Z"/>
+            <path fill="url(#mtnHorn)" d="M540,420 L620,260 L660,200 L690,140 L710,80 L720,30 L730,80 L750,140 L780,200 L820,260 L900,420Z"/>
+            <path fill="url(#snowCap)" d="M690,140 L710,80 L720,30 L730,80 L750,140 L735,130 L720,100 L705,130Z"/>
+            <path fill="url(#mtnMid)" opacity=".6" d="M0,420 L100,340 L200,300 L320,320 L440,280 L540,300 L620,260 L540,420Z"/>
+            <path fill="url(#mtnMid)" opacity=".6" d="M900,420 L820,260 L920,290 L1020,260 L1120,280 L1220,260 L1320,290 L1440,270 L1440,420Z"/>
+        </svg>
+    </div>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <svg class="alpine-icon" viewBox="0 0 64 64" fill="none">
+                    <defs><linearGradient id="aGrad" x1="16" y1="56" x2="48" y2="8"><stop offset="0%" stop-color="#0f2e5e"/><stop offset="40%" stop-color="#2e7ec7"/><stop offset="100%" stop-color="#8cc8f5"/></linearGradient></defs>
+                    <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#aGrad)"/>
+                    <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="none" stroke="#a3d5ff" stroke-width="1" opacity=".4"/>
+                    <path d="M22 44l10-20 10 20" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+                    <path d="M32 4L25 18h14L32 4z" fill="#fff" opacity=".5"/>
+                </svg>
+                <div class="header-text"><h1>ALPINE <span>DIGITAL</span></h1><p>Wallet Analyzer</p></div>
+            </div>
+            <p style="color:var(--text-dim);font-size:13px;margin-top:12px;">Luna Classic Transaction Explorer &amp; Network Graph</p>
+            <div class="badge-group"><div class="badge">Transactions</div><div class="badge">Network Graph</div><div class="badge">Labels</div><div class="badge">Explorer</div></div>
+        </header>
+
+        <!-- Wallet Input -->
+        <div class="card">
+            <div class="card-content" style="padding:16px 20px;">
+                <div class="wallet-search">
+                    <input class="wallet-input" type="text" id="walletInput" placeholder="Enter Terra Classic address (terra1...)" spellcheck="false">
+                    <button class="btn-primary" onclick="analyzeWallet()">Analyze</button>
+                    <button class="btn-secondary btn-sm" onclick="toggleLabels()">Labels</button>
+                </div>
+                <div class="history-nav" id="historyNav"></div>
+                <div class="progress-bar hidden" id="mainProgress"><div class="progress-fill" id="mainFill"></div></div>
+                <div class="progress-text hidden" id="mainProgressText"></div>
+            </div>
+        </div>
+
+        <!-- Results Area -->
+        <div id="resultsArea" class="hidden">
+            <!-- Stats -->
+            <div id="walletStats"></div>
+
+            <!-- View Tabs -->
+            <div class="view-tabs">
+                <div class="view-tab active" data-view="txlist" onclick="switchView('txlist')">Transactions</div>
+                <div class="view-tab" data-view="graph" onclick="switchView('graph')">Network Graph</div>
+            </div>
+
+            <!-- TX List View -->
+            <div class="card" id="txListCard" style="border-top-left-radius:0;">
+                <div class="card-header">
+                    <span id="txTitle">Transactions</span>
+                    <div class="button-group">
+                        <button class="btn-secondary btn-sm" onclick="exportTxCSV()">Export CSV</button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div id="txTableArea"></div>
+                    <div class="pagination" id="txPagination"></div>
+                </div>
+            </div>
+
+            <!-- Graph View -->
+            <div class="card hidden" id="graphCard" style="border-top-left-radius:0;">
+                <div class="card-header">
+                    Network Graph
+                    <div class="button-group">
+                        <button class="btn-secondary btn-sm" onclick="resetGraph()">Reset Layout</button>
+                    </div>
+                </div>
+                <div class="card-content" style="padding:0;">
+                    <div id="graphContainer">
+                        <svg id="graphSvg"></svg>
+                        <div class="graph-controls">
+                            <button onclick="graphZoom(1.3)" title="Zoom In">+</button>
+                            <button onclick="graphZoom(0.7)" title="Zoom Out">−</button>
+                        </div>
+                        <div class="node-tooltip hidden" id="nodeTooltip"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Labels Panel -->
+        <div class="card hidden" id="labelsCard">
+            <div class="card-header">
+                Wallet Labels
+                <div class="button-group">
+                    <button class="btn-secondary btn-sm" onclick="exportLabels()">Export JSON</button>
+                    <button class="btn-secondary btn-sm" onclick="document.getElementById('labelFile').click()">Import JSON</button>
+                </div>
+            </div>
+            <div class="card-content">
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
+                    <input class="wallet-input" type="text" id="newLabelAddr" placeholder="terra1..." style="font-size:12px;padding:8px 10px;">
+                    <input class="wallet-input" type="text" id="newLabelName" placeholder="Label name" style="font-size:12px;padding:8px 10px;flex:.6;font-family:inherit;">
+                    <button class="btn-primary btn-sm" onclick="addLabel()">Add</button>
+                </div>
+                <div id="labelsList"></div>
+                <div style="font-size:11px;color:var(--text-dim);margin-top:8px;" id="labelCount">0 labels</div>
+            </div>
+        </div>
+        <input type="file" id="labelFile" accept=".json" style="display:none" onchange="importLabels(event)">
+
+        <div class="security-notice">
+            <strong>Security Notice:</strong> All data is fetched read-only from the public Terra Classic LCD node. Labels are stored in your browser's localStorage. No data is sent to Alpine Digital servers.
+        </div>
+    </div>
+    <div class="copy-toast" id="copyToast">Copied to clipboard</div>
+
+    <!-- MASTER FOOTER -->
+    <footer class="footer">
+        <div>Alpine Digital Wallet Analyzer — v1.0 | Luna Classic Transaction Explorer &amp; Network Graph</div>
+    </footer>
+
+<script>
+// ─── DROPDOWN MENU TOGGLE ───
+document.getElementById('toolsMenu').addEventListener('click', function(e) {
+    e.stopPropagation();
+    this.classList.toggle('active');
+});
+document.addEventListener('click', function() {
+    document.getElementById('toolsMenu').classList.remove('active');
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.getElementById('toolsMenu').classList.remove('active');
+    }
+});
+
+// ═══ CONFIG ═══
+const LCD = 'https://terra-classic-lcd.publicnode.com';
+const MAX_TX = 500;
+const TX_PAGE_SIZE = 50;
+const KNOWN_WALLETS = {
+    'terra1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3nln0mh': 'Binance',
+    'terra1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8pm7utl': 'Binance 2',
+    'terra1dp0taj85ruc299rkdvzp4z5pfg6z6swaed74e6': 'Osmosis Bridge',
+    'terra1untf85jwv3kt0puyyc39myxjvplagr3wstgs5s': 'Terra Station',
+    'terra10d07y265gmmuvt4z0w9aw880jnsr700juxf95n': 'Burn Address',
+};
+let walletLabels = {};
+try { walletLabels = JSON.parse(localStorage.getItem('alpine_wallet_labels') || '{}'); } catch(e) {}
+function getAllLabels() { return { ...KNOWN_WALLETS, ...walletLabels }; }
+function getLabel(addr) { return walletLabels[addr] || KNOWN_WALLETS[addr] || null; }
+function displayAddr(addr) { const l = getLabel(addr); return l ? `${l}` : truncAddr(addr); }
+function displayAddrFull(addr) { const l = getLabel(addr); return l ? `${l} (${truncAddr(addr)})` : truncAddr(addr); }
+
+// ═══ STATE ═══
+let currentWallet = '';
+let allTxs = [];
+let txPage = 0;
+let walletHistory = [];
+let currentAbort = null;
+let activeRequests = 0;
+const MAX_CONCURRENT = 2;
+let graphNodes = [];
+let graphEdges = [];
+let graphSim = null;
+let graphTransform = { x: 0, y: 0, scale: 1 };
+
+// ═══ HELPERS ═══
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function truncAddr(a) { return a && a.length > 16 ? a.slice(0,10)+'...'+a.slice(-5) : a; }
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function fmtNum(n) { return n.toLocaleString('en-US'); }
+function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
+function fmtToken(uluna) { const v = uluna/1e6; if(v>=1e9)return(v/1e9).toFixed(2)+'B'; if(v>=1e6)return(v/1e6).toFixed(2)+'M'; if(v>=1e3)return(v/1e3).toFixed(1)+'K'; return v.toLocaleString('en-US',{maximumFractionDigits:2}); }
+function copyAddr(a) { navigator.clipboard.writeText(a).then(()=>{ const t=document.getElementById('copyToast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1500); }); }
+
+// ═══ RATE-LIMITED FETCH ═══
+async function throttledFetch(url, signal) {
+    while(activeRequests>=MAX_CONCURRENT){await sleep(100);if(signal?.aborted)throw new DOMException('Aborted','AbortError');}
+    activeRequests++;
+    try{return await fetch(url,{signal});}finally{activeRequests--;}
+}
+async function fetchRetry(url, signal, retries=3) {
+    for(let a=0;a<=retries;a++){
+        if(signal?.aborted)throw new DOMException('Aborted','AbortError');
+        try{
+            const r=await throttledFetch(url,signal);
+            if(r.status===429){await sleep(Math.min(2000*Math.pow(2,a),15000));continue;}
+            if(!r.ok){if(a<retries){await sleep(1000*(a+1));continue;}throw new Error(`HTTP ${r.status}`);}
+            return r;
+        }catch(e){if(e.name==='AbortError')throw e;if(a<retries){await sleep(1000*(a+1));continue;}throw e;}
+    }
+}
+
+// ═══ FETCH TRANSACTIONS ═══
+async function fetchTxs(addr, signal, progressCb) {
+    let allResults = [];
+    // Fetch sent
+    let nextKey = null; let page = 0;
+    do {
+        if(signal?.aborted)throw new DOMException('Aborted','AbortError');
+        let url = `${LCD}/cosmos/tx/v1beta1/txs?events=message.sender%3D'${addr}'&pagination.limit=50&order_by=ORDER_BY_DESC`;
+        if(nextKey) url += '&pagination.key='+encodeURIComponent(nextKey);
+        if(page===0) url += '&pagination.count_total=true';
+        const r = await fetchRetry(url, signal);
+        const data = await r.json();
+        const txs = data.tx_responses || [];
+        allResults = allResults.concat(txs.map(t=>({...t, _dir:'sent'})));
+        nextKey = data.pagination?.next_key || null;
+        page++;
+        const total = parseInt(data.pagination?.total)||allResults.length;
+        if(progressCb)progressCb(allResults.length, total, 'sent');
+        if(allResults.length >= MAX_TX/2) break;
+        if(nextKey) await sleep(200);
+    } while(nextKey);
+
+    // Fetch received
+    nextKey = null; page = 0;
+    do {
+        if(signal?.aborted)throw new DOMException('Aborted','AbortError');
+        let url = `${LCD}/cosmos/tx/v1beta1/txs?events=coin_received.receiver%3D'${addr}'&pagination.limit=50&order_by=ORDER_BY_DESC`;
+        if(nextKey) url += '&pagination.key='+encodeURIComponent(nextKey);
+        if(page===0) url += '&pagination.count_total=true';
+        const r = await fetchRetry(url, signal);
+        const data = await r.json();
+        const txs = data.tx_responses || [];
+        allResults = allResults.concat(txs.map(t=>({...t, _dir:'recv'})));
+        nextKey = data.pagination?.next_key || null;
+        page++;
+        const total = parseInt(data.pagination?.total)||0;
+        if(progressCb)progressCb(allResults.length, total, 'recv');
+        if(allResults.length >= MAX_TX) break;
+        if(nextKey) await sleep(200);
+    } while(nextKey);
+
+    // Deduplicate by txhash, parse
+    const seen = new Set();
+    const unique = [];
+    allResults.forEach(tx => {
+        if(seen.has(tx.txhash))return;
+        seen.add(tx.txhash);
+        unique.push(parseTx(tx, addr));
+    });
+    unique.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+    return unique;
+}
+
+function parseTx(tx, myAddr) {
+    const msgs = tx.tx?.body?.messages || [];
+    const timestamp = tx.timestamp || '';
+    const hash = tx.txhash || '';
+    const code = tx.code || 0;
+    const memo = tx.tx?.body?.memo || '';
+    const fee = tx.tx?.auth_info?.fee?.amount || [];
+    const gasUsed = parseInt(tx.gas_used)||0;
+
+    let type = 'other', counterparty = '', amount = 0, denom = 'uluna', description = '';
+
+    if(msgs.length > 0) {
+        const m = msgs[0];
+        const mType = m['@type'] || '';
+
+        if(mType.includes('MsgSend')) {
+            const from = m.from_address||'';
+            const to = m.to_address||'';
+            const amt = m.amount||[];
+            amount = amt.length>0 ? parseInt(amt[0].amount)||0 : 0;
+            denom = amt.length>0 ? amt[0].denom||'uluna' : 'uluna';
+            if(from === myAddr) { type='send'; counterparty=to; }
+            else { type='receive'; counterparty=from; }
+            description = `${fmtToken(amount)} ${denomLabel(denom)}`;
+        } else if(mType.includes('MsgDelegate')) {
+            type='delegate'; counterparty=m.validator_address||'';
+            amount = parseInt(m.amount?.amount)||0;
+            denom = m.amount?.denom||'uluna';
+            description = `Delegate ${fmtToken(amount)} LUNC`;
+        } else if(mType.includes('MsgUndelegate')) {
+            type='undelegate'; counterparty=m.validator_address||'';
+            amount = parseInt(m.amount?.amount)||0;
+            description = `Undelegate ${fmtToken(amount)} LUNC`;
+        } else if(mType.includes('MsgExecuteContract')) {
+            type='contract'; counterparty=m.contract||'';
+            description = 'Contract Execution';
+            try { const exec = JSON.parse(atob(m.msg||'')); description = Object.keys(exec)[0]||'Execute'; } catch(e) {}
+            if(typeof m.msg === 'object') { description = Object.keys(m.msg)[0]||'Execute'; }
+        } else if(mType.includes('MsgWithdrawDelegatorReward')) {
+            type='reward'; counterparty=m.validator_address||'';
+            description = 'Claim Rewards';
+        } else {
+            description = mType.split('.').pop()||'Unknown';
+        }
+    }
+
+    return { hash, timestamp, type, counterparty, amount, denom, description, memo, fee, gasUsed, code, msgCount: msgs.length };
+}
+
+function denomLabel(d) {
+    if(d==='uluna')return'LUNC'; if(d==='uusd')return'USTC';
+    return d.replace(/^u/,'').toUpperCase();
+}
+
+function txTypeBadge(type) {
+    const map = {send:'tx-send',receive:'tx-recv',delegate:'tx-delegate',undelegate:'tx-delegate',contract:'tx-exec',reward:'tx-delegate'};
+    const labels = {send:'SEND',receive:'RECV',delegate:'DLGT',undelegate:'UNDLG',contract:'EXEC',reward:'RWRD',other:'OTHER'};
+    return `<span class="tx-type-badge ${map[type]||'tx-other'}">${labels[type]||'OTHER'}</span>`;
+}
+
+function txRowClass(type) {
+    if(type==='send')return'tx-out'; if(type==='receive')return'tx-in'; if(type==='contract')return'tx-contract'; return'';
+}
+
+// ═══ ANALYZE WALLET ═══
+async function analyzeWallet(addr) {
+    addr = addr || document.getElementById('walletInput').value.trim();
+    if(!addr.startsWith('terra1') || addr.length < 20) { alert('Enter a valid Terra Classic address.'); return; }
+
+    if(currentAbort){currentAbort.abort();currentAbort=null;}
+    currentAbort = new AbortController();
+    const signal = currentAbort.signal;
+
+    currentWallet = addr;
+    document.getElementById('walletInput').value = addr;
+
+    // Update history
+    if(!walletHistory.includes(addr)) walletHistory.unshift(addr);
+    if(walletHistory.length>10) walletHistory.pop();
+    renderHistory();
+
+    const fill = document.getElementById('mainFill');
+    const text = document.getElementById('mainProgressText');
+    document.getElementById('mainProgress').classList.remove('hidden');
+    text.classList.remove('hidden');
+    fill.style.width = '5%';
+    text.textContent = 'Fetching transactions...';
+    document.getElementById('resultsArea').classList.add('hidden');
+
+    try {
+        allTxs = await fetchTxs(addr, signal, (loaded, total, dir)=>{
+            if(signal.aborted)return;
+            fill.style.width = Math.min(90, loaded/5)+'%';
+            text.textContent = `Loaded ${fmtNum(loaded)} transactions (${dir})...`;
+        });
+
+        if(signal.aborted)return;
+        fill.style.width='100%';
+        text.textContent=`${fmtNum(allTxs.length)} transactions loaded`;
+        setTimeout(()=>{document.getElementById('mainProgress').classList.add('hidden');text.classList.add('hidden');},1500);
+
+        txPage=0;
+        document.getElementById('resultsArea').classList.remove('hidden');
+        renderStats();
+        renderTxTable();
+        buildGraphData();
+        if(!document.getElementById('graphCard').classList.contains('hidden')) renderGraph();
+
+    } catch(e) {
+        if(e.name==='AbortError')return;
+        fill.style.width='0%';
+        text.textContent='Error: '+e.message;
+    }
+}
+
+// ═══ STATS ═══
+function renderStats() {
+    const sent = allTxs.filter(t=>t.type==='send');
+    const recv = allTxs.filter(t=>t.type==='receive');
+    const totalSent = sent.reduce((s,t)=>s+(t.denom==='uluna'?t.amount:0),0);
+    const totalRecv = recv.reduce((s,t)=>s+(t.denom==='uluna'?t.amount:0),0);
+    const uniqueAddrs = new Set(allTxs.map(t=>t.counterparty).filter(Boolean));
+    const contracts = allTxs.filter(t=>t.type==='contract').length;
+    const dateRange = allTxs.length>0 ? fmtDate(allTxs[allTxs.length-1].timestamp)+' → '+fmtDate(allTxs[0].timestamp) : '—';
+
+    document.getElementById('walletStats').innerHTML = `
+        <div style="margin-bottom:4px;font-size:13px;color:var(--text-dim);">Analyzing: <span class="addr-link" onclick="copyAddr('${currentWallet}')">${displayAddrFull(currentWallet)}</span></div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:16px;">${dateRange}</div>
+        <div class="stats-grid">
+            <div class="stat-card highlight"><div class="stat-value">${fmtNum(allTxs.length)}</div><div class="stat-label">Transactions</div></div>
+            <div class="stat-card"><div class="stat-value">${fmtToken(totalSent)}</div><div class="stat-label">LUNC Sent</div></div>
+            <div class="stat-card"><div class="stat-value">${fmtToken(totalRecv)}</div><div class="stat-label">LUNC Received</div></div>
+            <div class="stat-card"><div class="stat-value">${fmtNum(uniqueAddrs.size)}</div><div class="stat-label">Unique Addresses</div></div>
+            <div class="stat-card"><div class="stat-value">${fmtNum(contracts)}</div><div class="stat-label">Contract Calls</div></div>
+        </div>`;
+}
+
+// ═══ TX TABLE ═══
+function renderTxTable() {
+    const totalPages = Math.max(1, Math.ceil(allTxs.length/TX_PAGE_SIZE));
+    txPage = Math.max(0, Math.min(txPage, totalPages-1));
+    const start = txPage*TX_PAGE_SIZE;
+    const end = Math.min(start+TX_PAGE_SIZE, allTxs.length);
+    const pageTxs = allTxs.slice(start, end);
+
+    document.getElementById('txTitle').textContent = `Transactions (${fmtNum(allTxs.length)})`;
+
+    let html = `<div class="table-scroll"><table><thead><tr>
+        <th>Date</th><th>Type</th><th>Counterparty</th><th style="text-align:right;">Amount</th><th>Description</th><th>Hash</th>
+    </tr></thead><tbody>`;
+
+    pageTxs.forEach(tx => {
+        const cp = tx.counterparty;
+        const cpDisplay = cp ? displayAddr(cp) : '—';
+        html += `<tr class="${txRowClass(tx.type)}">
+            <td class="mono-val">${fmtDate(tx.timestamp)}</td>
+            <td>${txTypeBadge(tx.type)}</td>
+            <td>${cp ? `<span class="addr-link" onclick="analyzeWallet('${cp}')" title="${cp}">${escHtml(cpDisplay)}</span>` : '—'}</td>
+            <td class="mono-val" style="text-align:right;">${tx.amount>0?fmtToken(tx.amount):''}</td>
+            <td style="font-size:11px;color:var(--text-dim);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(tx.description)}">${escHtml(tx.description)}</td>
+            <td><span class="addr-link" onclick="copyAddr('${tx.hash}')" title="${tx.hash}">${tx.hash.slice(0,8)}...</span></td>
+        </tr>`;
+    });
+
+    html += '</tbody></table></div>';
+    document.getElementById('txTableArea').innerHTML = html;
+
+    const pag = document.getElementById('txPagination');
+    if(totalPages<=1){pag.innerHTML='';return;}
+    pag.innerHTML = `
+        <button class="btn-secondary btn-sm" onclick="txNav(0)" ${txPage===0?'disabled style="opacity:.4"':''}>First</button>
+        <button class="btn-secondary btn-sm" onclick="txNav(${txPage-1})" ${txPage===0?'disabled style="opacity:.4"':''}>&#8592;</button>
+        <span class="page-info">Page ${txPage+1} of ${totalPages}</span>
+        <button class="btn-secondary btn-sm" onclick="txNav(${txPage+1})" ${txPage>=totalPages-1?'disabled style="opacity:.4"':''}>&#8594;</button>
+        <button class="btn-secondary btn-sm" onclick="txNav(${totalPages-1})" ${txPage>=totalPages-1?'disabled style="opacity:.4"':''}>Last</button>`;
+}
+
+function txNav(p){txPage=p;renderTxTable();document.getElementById('txTableArea').scrollIntoView({behavior:'smooth',block:'start'});}
+
+// ═══ VIEW SWITCHING ═══
+function switchView(v) {
+    document.querySelectorAll('.view-tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));
+    document.getElementById('txListCard').classList.toggle('hidden',v!=='txlist');
+    document.getElementById('graphCard').classList.toggle('hidden',v!=='graph');
+    if(v==='graph' && graphNodes.length>0) renderGraph();
+}
+
+// ═══ NETWORK GRAPH ═══
+function buildGraphData() {
+    const nodeMap = {};
+    const edgeMap = {};
+
+    // Central node
+    nodeMap[currentWallet] = { id:currentWallet, txCount:allTxs.length, totalAmount:0, isCenter:true };
+
+    allTxs.forEach(tx => {
+        if(!tx.counterparty) return;
+        const cp = tx.counterparty;
+        if(!nodeMap[cp]) nodeMap[cp] = { id:cp, txCount:0, totalAmount:0, isCenter:false };
+        nodeMap[cp].txCount++;
+        nodeMap[cp].totalAmount += tx.amount;
+
+        const edgeKey = [currentWallet, cp].sort().join('|');
+        if(!edgeMap[edgeKey]) edgeMap[edgeKey] = { source:currentWallet, target:cp, txCount:0, totalAmount:0, types:new Set() };
+        edgeMap[edgeKey].txCount++;
+        edgeMap[edgeKey].totalAmount += tx.amount;
+        edgeMap[edgeKey].types.add(tx.type);
+    });
+
+    graphNodes = Object.values(nodeMap);
+    graphEdges = Object.values(edgeMap);
+}
+
+function renderGraph() {
+    const svg = document.getElementById('graphSvg');
+    const container = document.getElementById('graphContainer');
+    const W = container.clientWidth;
+    const H = container.clientHeight;
+
+    // Initialize positions
+    const cx = W/2, cy = H/2;
+    graphNodes.forEach(n => {
+        if(n.isCenter) { n.x=cx; n.y=cy; n.fx=cx; n.fy=cy; }
+        else if(!n.x) { const a=Math.random()*Math.PI*2; const r=120+Math.random()*150; n.x=cx+Math.cos(a)*r; n.y=cy+Math.sin(a)*r; }
+        n.vx=0; n.vy=0;
+    });
+
+    // Force simulation
+    const maxTxCount = Math.max(1,...graphNodes.filter(n=>!n.isCenter).map(n=>n.txCount));
+
+    function nodeRadius(n) {
+        if(n.isCenter) return 20;
+        return 5 + (n.txCount/maxTxCount)*15;
+    }
+
+    function tick() {
+        const alpha = 0.3;
+        // Repulsion between all nodes
+        for(let i=0;i<graphNodes.length;i++){
+            for(let j=i+1;j<graphNodes.length;j++){
+                const a=graphNodes[i],b=graphNodes[j];
+                let dx=b.x-a.x, dy=b.y-a.y;
+                let d=Math.sqrt(dx*dx+dy*dy)||1;
+                const force = 800/(d*d);
+                const fx=dx/d*force, fy=dy/d*force;
+                if(!a.fx){a.vx-=fx;a.vy-=fy;}
+                if(!b.fx){b.vx+=fx;b.vy+=fy;}
+            }
+        }
+        // Attraction along edges
+        graphEdges.forEach(e=>{
+            const s=graphNodes.find(n=>n.id===e.source);
+            const t=graphNodes.find(n=>n.id===e.target);
+            if(!s||!t)return;
+            let dx=t.x-s.x,dy=t.y-s.y;
+            let d=Math.sqrt(dx*dx+dy*dy)||1;
+            const strength = 0.01 * Math.log(1+e.txCount);
+            const ideal = 150;
+            const force = (d-ideal)*strength;
+            const fx=dx/d*force,fy=dy/d*force;
+            if(!s.fx){s.vx+=fx;s.vy+=fy;}
+            if(!t.fx){t.vx-=fx;t.vy-=fy;}
+        });
+        // Center gravity
+        graphNodes.forEach(n=>{
+            if(n.fx)return;
+            n.vx+=(cx-n.x)*0.001;
+            n.vy+=(cy-n.y)*0.001;
+        });
+        // Apply velocity with damping
+        graphNodes.forEach(n=>{
+            if(n.fx){n.x=n.fx;n.y=n.fy;return;}
+            n.vx*=0.6; n.vy*=0.6;
+            n.x+=n.vx; n.y+=n.vy;
+            // Boundary
+            const r=nodeRadius(n);
+            n.x=Math.max(r,Math.min(W-r,n.x));
+            n.y=Math.max(r,Math.min(H-r,n.y));
+        });
+    }
+
+    // Run simulation
+    for(let i=0;i<120;i++) tick();
+
+    // Render SVG
+    const t = graphTransform;
+    let svgContent = `<g transform="translate(${t.x},${t.y}) scale(${t.scale})">`;
+
+    // Edges
+    graphEdges.forEach(e=>{
+        const s=graphNodes.find(n=>n.id===e.source);
+        const tgt=graphNodes.find(n=>n.id===e.target);
+        if(!s||!tgt)return;
+        const w = Math.max(1, Math.min(6, Math.log(1+e.txCount)*1.5));
+        const opacity = Math.min(0.8, 0.2+e.txCount/maxTxCount*0.6);
+        const color = e.types.has('send')&&e.types.has('receive') ? '#4a9de8' : e.types.has('send') ? '#f87171' : e.types.has('receive') ? '#34d399' : '#6b8cb8';
+        svgContent += `<line x1="${s.x}" y1="${s.y}" x2="${tgt.x}" y2="${tgt.y}" stroke="${color}" stroke-width="${w}" opacity="${opacity}"/>`;
+    });
+
+    // Nodes
+    graphNodes.forEach(n=>{
+        const r = nodeRadius(n);
+        const color = n.isCenter ? '#2e7ec7' : getLabel(n.id) ? '#4a9de8' : '#6b8cb8';
+        const label = getLabel(n.id) || (n.isCenter ? 'YOU' : '');
+        svgContent += `<circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${color}" stroke="${n.isCenter?'#8cc8f5':'#1e3a62'}" stroke-width="${n.isCenter?3:1}" style="cursor:pointer" data-id="${n.id}"
+            onmouseenter="showNodeTip(event,'${n.id}')" onmouseleave="hideNodeTip()" onclick="onNodeClick('${n.id}')"/>`;
+        if(label && (n.isCenter || r > 8)) {
+            svgContent += `<text x="${n.x}" y="${n.y+r+12}" text-anchor="middle" fill="var(--text-dim)" font-size="10" font-family="var(--mono)" pointer-events="none">${escHtml(label)}</text>`;
+        }
+    });
+
+    svgContent += '</g>';
+    svg.innerHTML = svgContent;
+
+    // Drag support
+    setupGraphDrag(svg);
+}
+
+function showNodeTip(e, id) {
+    const n = graphNodes.find(n=>n.id===id);
+    if(!n) return;
+    const tip = document.getElementById('nodeTooltip');
+    const label = getLabel(id);
+    tip.innerHTML = `${label?`<div class="tt-label">${escHtml(label)}</div>`:''}
+        <div class="tt-addr">${id}</div>
+        <div class="tt-stat">${n.txCount} transactions${n.totalAmount>0?' · '+fmtToken(n.totalAmount)+' LUNC':''}</div>
+        ${n.isCenter?'<div class="tt-stat" style="color:var(--accent3);">Current wallet</div>':'<div class="tt-stat" style="color:var(--accent3);">Click to explore</div>'}`;
+    tip.classList.remove('hidden');
+    const rect = document.getElementById('graphContainer').getBoundingClientRect();
+    tip.style.left = Math.min(e.clientX-rect.left+10, rect.width-220)+'px';
+    tip.style.top = (e.clientY-rect.top+10)+'px';
+}
+function hideNodeTip() { document.getElementById('nodeTooltip').classList.add('hidden'); }
+
+function onNodeClick(id) {
+    if(id===currentWallet) return;
+    analyzeWallet(id);
+}
+
+function setupGraphDrag(svg) {
+    let dragging=false, lastX=0, lastY=0;
+    svg.onmousedown = e => { dragging=true; lastX=e.clientX; lastY=e.clientY; };
+    svg.onmousemove = e => { if(!dragging)return; graphTransform.x+=e.clientX-lastX; graphTransform.y+=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY; renderGraphTransform(); };
+    svg.onmouseup = () => dragging=false;
+    svg.onmouseleave = () => dragging=false;
+    svg.onwheel = e => { e.preventDefault(); const factor = e.deltaY<0?1.1:0.9; graphTransform.scale*=factor; renderGraphTransform(); };
+}
+function renderGraphTransform() {
+    const g = document.querySelector('#graphSvg > g');
+    if(g) g.setAttribute('transform',`translate(${graphTransform.x},${graphTransform.y}) scale(${graphTransform.scale})`);
+}
+function graphZoom(factor) { graphTransform.scale*=factor; renderGraphTransform(); }
+function resetGraph() { graphTransform={x:0,y:0,scale:1}; graphNodes.forEach(n=>{if(!n.isCenter){n.x=null;n.y=null;}}); renderGraph(); }
+
+// ═══ HISTORY ═══
+function renderHistory() {
+    document.getElementById('historyNav').innerHTML = walletHistory.map(a=>
+        `<div class="history-chip ${a===currentWallet?'current':''}" onclick="analyzeWallet('${a}')" title="${a}">${displayAddr(a)}</div>`
+    ).join('');
+}
+
+// ═══ LABELS ═══
+function toggleLabels() { document.getElementById('labelsCard').classList.toggle('hidden'); renderLabels(); }
+
+function renderLabels() {
+    const all = { ...walletLabels };
+    const keys = Object.keys(all);
+    let html = '';
+    keys.forEach(addr=>{
+        html += `<div class="label-row">
+            <span class="label-addr" onclick="copyAddr('${addr}')" title="${addr}">${truncAddr(addr)}</span>
+            <input class="label-name" value="${escHtml(all[addr])}" onchange="updateLabel('${addr}',this.value)">
+            <button class="label-del" onclick="deleteLabel('${addr}')">&#10005;</button>
+        </div>`;
+    });
+    // Show known wallets
+    Object.keys(KNOWN_WALLETS).forEach(addr=>{
+        if(walletLabels[addr])return;
+        html += `<div class="label-row" style="opacity:.6;">
+            <span class="label-addr" onclick="copyAddr('${addr}')" title="${addr}">${truncAddr(addr)}</span>
+            <input class="label-name" value="${escHtml(KNOWN_WALLETS[addr])}" disabled style="opacity:.5">
+            <span style="font-size:10px;color:var(--text-dim);padding:0 6px;">built-in</span>
+        </div>`;
+    });
+    document.getElementById('labelsList').innerHTML = html||'<div style="color:var(--text-dim);font-size:12px;">No custom labels yet.</div>';
+    document.getElementById('labelCount').textContent = `${keys.length} custom + ${Object.keys(KNOWN_WALLETS).length} built-in labels`;
+}
+
+function addLabel() {
+    const addr = document.getElementById('newLabelAddr').value.trim();
+    const name = document.getElementById('newLabelName').value.trim();
+    if(!addr||!name)return;
+    walletLabels[addr]=name;
+    saveLabels();
+    renderLabels();
+    document.getElementById('newLabelAddr').value='';
+    document.getElementById('newLabelName').value='';
+}
+
+function updateLabel(addr,name) { walletLabels[addr]=name; saveLabels(); }
+function deleteLabel(addr) { delete walletLabels[addr]; saveLabels(); renderLabels(); }
+function saveLabels() { try{localStorage.setItem('alpine_wallet_labels',JSON.stringify(walletLabels));}catch(e){} }
+
+function exportLabels() {
+    const blob = new Blob([JSON.stringify(walletLabels,null,2)],{type:'application/json'});
+    const a = document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`alpine_wallet_labels_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+}
+
+function importLabels(event) {
+    const file=event.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        try{
+            const data=JSON.parse(e.target.result);
+            Object.assign(walletLabels, data);
+            saveLabels();
+            renderLabels();
+            alert(`Imported ${Object.keys(data).length} labels.`);
+        }catch(err){alert('Invalid JSON file.');}
+    };
+    reader.readAsText(file);
+    event.target.value='';
+}
+
+// ═══ EXPORT TX CSV ═══
+function exportTxCSV() {
+    if(allTxs.length===0){alert('No transactions to export.');return;}
+    let csv='Wallet,'+currentWallet+'\nExported,'+new Date().toISOString()+'\n\n';
+    csv+='Date,Type,Counterparty,Label,Amount,Denom,Description,Memo,Hash\n';
+    allTxs.forEach(tx=>{
+        const label=getLabel(tx.counterparty)||'';
+        csv+=`"${tx.timestamp}","${tx.type}","${tx.counterparty}","${label}",${tx.amount},"${denomLabel(tx.denom)}","${tx.description.replace(/"/g,"'")}","${tx.memo.replace(/"/g,"'")}","${tx.hash}"\n`;
+    });
+    const blob=new Blob([csv],{type:'text/csv'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`alpine_wallet_${truncAddr(currentWallet)}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+}
+
+// ═══ ENTER KEY ═══
+document.getElementById('walletInput').addEventListener('keydown',e=>{if(e.key==='Enter')analyzeWallet();});
+
+</script>
+
+<!-- Alpine Digital Footer -->
+<footer class="alpine-footer">
+  <p>Built by <strong>Alpine Digital</strong> &mdash; Independent LUNC Validator</p>
+  <p class="ver">v4.0 &middot; March 2026</p>
+</footer>
+<script>
+function adToggleDropdown(){const b=document.getElementById('adNavBrand'),d=document.getElementById('adDropdown'),o=document.getElementById('adDdOverlay'),isOpen=d.classList.contains('open');d.classList.toggle('open');o.classList.toggle('open');b.classList.toggle('open');if(!isOpen){const ex=d.querySelector('.dd-section.expanded');if(!ex){const f=d.querySelector('.dd-section');if(f)f.classList.add('expanded')}}}
+function adToggleSection(btn){btn.closest('.dd-section').classList.toggle('expanded')}
+document.getElementById('adDropdown').querySelectorAll('.dd-tool-link[href]').forEach(l=>{l.addEventListener('click',()=>adToggleDropdown())});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const d=document.getElementById('adDropdown');if(d.classList.contains('open'))adToggleDropdown()}});
+</script>
+</body>
+</html>

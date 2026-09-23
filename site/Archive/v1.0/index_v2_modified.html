@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpine Digital — Variant Perception</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+  :root {
+    --bg: #080f1e;
+    --surface: #0d1829;
+    --surface2: #132238;
+    --surface3: #1a2d4a;
+    --border: #1c3355;
+    --border-glow: #3b7fd4;
+    --text: #c4d6ec;
+    --text-dim: #607d9e;
+    --text-bright: #f0f4f8;
+    --accent: #2e7ec7;
+    --accent2: #4a9de8;
+    --accent3: #7bbdf5;
+    --ice: #a8d4ff;
+    --snow: #d6ebff;
+    --success: #34d399;
+    --warning: #f59e0b;
+    --gradient-ice: linear-gradient(135deg, #1a4a80, #2e7ec7, #5eaeff);
+    --gradient-card: linear-gradient(135deg, rgba(46,126,199,0.08), rgba(46,126,199,0.02));
+    --radius: 14px;
+    --radius-sm: 10px;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --heading: 'Space Grotesk', 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.15);
+    --shadow-md: 0 8px 32px rgba(0,0,0,0.25);
+    --shadow-lg: 0 16px 64px rgba(0,0,0,0.35);
+  }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grain texture */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.03;
+    background-image:
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noiseFilter)' /%3E%3C/svg%3E");
+  }
+
+  main { position: relative; z-index: 2; }
+
+  /* ═══════════ NAV BAR ═══════════ */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; align-items: center;
+    padding: 0 40px; height: 60px;
+    background: rgba(8, 15, 30, 0.92);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-brand {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; user-select: none;
+    color: var(--text-bright); text-decoration: none;
+    padding: 8px 0;
+    transition: opacity 0.3s;
+  }
+
+  .nav-brand:hover { opacity: 0.8; }
+  .nav-brand svg:first-child { width: 28px; height: 28px; flex-shrink: 0; }
+
+  .nav-brand-text {
+    font-size: 0.95rem; font-weight: 600; letter-spacing: 0.3px;
+    font-family: var(--heading);
+  }
+
+  .nav-brand-text em {
+    font-style: normal; font-weight: 700; color: var(--accent2);
+  }
+
+  .nav-caret {
+    width: 10px; height: 10px; margin-left: 6px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .nav-brand:hover .nav-caret,
+  .nav-brand.open .nav-caret { transform: rotate(180deg); }
+
+  /* Validator badge */
+  .nav-right { margin-left: auto; }
+
+  .validator-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 0.75rem;
+    color: var(--text-dim); text-decoration: none;
+    padding: 6px 14px; border-radius: 12px;
+    background: rgba(46, 126, 199, 0.08);
+    border: 1px solid rgba(46, 126, 199, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .validator-link:hover {
+    color: var(--ice);
+    border-color: rgba(46, 126, 199, 0.4);
+    background: rgba(46, 126, 199, 0.12);
+  }
+
+  .validator-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; } 50% { opacity: 1; }
+  }
+
+  /* ═══════════ DROPDOWN MENU ═══════════ */
+  .dropdown-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 150;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+  }
+
+  .dropdown-overlay.open { display: block; }
+
+  .dropdown-menu {
+    position: absolute; top: 60px; left: 0;
+    display: none;
+    background: rgba(13, 24, 41, 0.98);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    min-width: 280px;
+    z-index: 160;
+    overflow: hidden;
+  }
+
+  .dropdown-menu.open { display: block; }
+
+  .dropdown-group {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dropdown-group:last-child { border-bottom: none; }
+
+  .dropdown-label {
+    display: block;
+    padding: 8px 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  .dropdown-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px;
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+  }
+
+  .dropdown-item:hover {
+    background: rgba(46, 126, 199, 0.1);
+    color: var(--ice);
+    border-left-color: var(--accent2);
+  }
+
+  .dropdown-item.active { color: var(--accent2); }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+  }
+
+  .status-dot.inactive {
+    background: rgba(96, 125, 158, 0.4);
+    box-shadow: none;
+  }
+
+  /* ═══════════ BANNER ═══════════ */
+  .banner {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    overflow: hidden;
+    margin-top: 60px;
+  }
+
+  .banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(8, 15, 30, 0) 0%,
+      rgba(8, 15, 30, 0.5) 50%,
+      rgba(8, 15, 30, 0.95) 100%
+    );
+  }
+
+  /* ═══════════ HERO SECTION ═══════════ */
+  .hero {
+    position: relative;
+    text-align: center;
+    padding: 80px 40px;
+    background: var(--bg);
+  }
+
+  .hero-logo {
+    width: 80px; height: 80px;
+    margin: 0 auto 32px;
+    animation: fadeInDown 0.8s ease-out;
+  }
+
+  .hero-title {
+    font-family: var(--heading);
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+    color: var(--text-bright);
+    line-height: 1.1;
+  }
+
+  .hero-title em {
+    font-style: normal;
+    background: var(--gradient-ice);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--accent2);
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .hero-tagline {
+    font-size: 1rem;
+    color: var(--text-dim);
+    margin-bottom: 40px;
+    font-weight: 400;
+  }
+
+  .hero-socials {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .social-bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(46, 126, 199, 0.1);
+    border: 1px solid rgba(46, 126, 199, 0.2);
+    border-radius: 20px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .social-bubble:hover {
+    background: rgba(46, 126, 199, 0.2);
+    border-color: rgba(46, 126, 199, 0.4);
+    color: var(--ice);
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ═══════════ MISSION SECTION ═══════════ */
+  .mission {
+    padding: 80px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .mission-title {
+    font-family: var(--heading);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .mission p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 24px;
+  }
+
+  .mission-disclaimer {
+    margin-top: 40px;
+    padding: 24px;
+    background: rgba(46, 126, 199, 0.06);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ═══════════ SECTIONS GRID ═══════════ */
+  .sections {
+    padding: 80px 40px;
+  }
+
+  .sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .section-card {
+    position: relative;
+    padding: 36px;
+    background: var(--gradient-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .section-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--gradient-ice);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .section-card:hover {
+    border-color: var(--border-glow);
+    box-shadow: var(--shadow-lg),
+                inset 0 0 32px rgba(46, 126, 199, 0.08);
+    transform: translateY(-4px);
+  }
+
+  .section-card:hover::before { opacity: 1; }
+
+  .section-num {
+    display: block;
+    font-family: var(--mono);
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: rgba(122, 189, 245, 0.08);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: var(--heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  .section-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    background: rgba(46, 126, 199, 0.2);
+    border: 1px solid rgba(46, 126, 199, 0.3);
+    border-radius: 12px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .section-subtitle {
+    font-size: 0.95rem;
+    color: var(--accent2);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .section-description {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  .section-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 6px 12px;
+    background: rgba(46, 126, 199, 0.08);
+    border: 1px solid rgba(46, 126, 199, 0.15);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    transition: all 0.2s;
+  }
+
+  .tag:hover {
+    background: rgba(46, 126, 199, 0.12);
+    color: var(--ice);
+  }
+
+  /* ═══════════ FOOTER ═══════════ */
+  .footer {
+    padding: 60px 40px;
+    background: rgba(13, 24, 41, 0.5);
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .footer-title {
+    font-family: var(--heading);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 12px;
+  }
+
+  .footer-tagline {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .footer-disclaimer {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .footer-version {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: rgba(96, 125, 158, 0.6);
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ═══════════ RESPONSIVE ═══════════ */
+  @media (max-width: 768px) {
+    .nav { padding: 0 20px; }
+    .nav-brand-text { font-size: 0.85rem; }
+
+    .banner { height: 350px; }
+
+    .hero {
+      padding: 60px 24px;
+    }
+
+    .hero-title {
+      font-size: clamp(1.8rem, 5vw, 2.5rem);
+    }
+
+    .sections-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .section-card {
+      padding: 28px;
+    }
+
+    .mission {
+      padding: 60px 24px;
+    }
+
+    .footer {
+      padding: 40px 24px;
+    }
+  }
+
+  /* ═══════════ UTILITY ═══════════ */
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION BAR -->
+<nav class="nav">
+  <div class="nav-brand" id="navBrand">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1a4a80;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#2e7ec7;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#a8d4ff;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <polygon points="50,10 85,70 15,70" fill="url(#mountainGradient)" />
+      <polygon points="50,30 70,60 30,60" fill="rgba(255,255,255,0.1)" />
+    </svg>
+    <span class="nav-brand-text">Alpine <em>Digital</em></span>
+    <svg class="nav-caret" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="2,3 5,7 8,3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="dropdown-menu" id="dropdownMenu">
+    <div class="dropdown-group">
+      <span class="dropdown-label">01 • Investment Thesis</span>
+      <a href="InvestmentThesis_History.html" class="dropdown-item">
+        <span>History of Terra Luna</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="InvestmentThesis_Emergence.html" class="dropdown-item">
+        <span>The Emergence of LUNC</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="InvestmentThesis_Compelling.html" class="dropdown-item">
+        <span>What Makes LUNC Compelling</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="InvestmentThesis_Catalysts.html" class="dropdown-item">
+        <span>Key Catalysts</span>
+        <span class="status-dot active"></span>
+      </a>
+    </div>
+
+    <div class="dropdown-group">
+      <span class="dropdown-label">02 • Evaluation & Scenario</span>
+      <a href="Old Versions/AlpinePricingModel.html" class="dropdown-item">
+        <span>Binomial Pricing Model</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="#" class="dropdown-item" style="opacity: 0.5;">
+        <span>Monte Carlo Simulator</span>
+        <span class="status-dot inactive"></span>
+      </a>
+    </div>
+
+    <div class="dropdown-group">
+      <span class="dropdown-label">03 • Portfolio Management</span>
+      <a href="Old Versions/AlpineWalletAnalyzer.html" class="dropdown-item">
+        <span>Portfolio Analyzer</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="Old Versions/AlpineWalletScanner.html" class="dropdown-item">
+        <span>Wallet Analyzer</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="ModelPortfolios.html" class="dropdown-item">
+        <span>Alpine Digital Model Portfolios</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="Old Versions/AlpineScenarioAnalysis.html" class="dropdown-item">
+        <span>LUNC Profit Scenario Analysis</span>
+        <span class="status-dot active"></span>
+      </a>
+    </div>
+
+    <div class="dropdown-group">
+      <span class="dropdown-label">04 • Utilities</span>
+      <a href="Old Versions/AlpineSeedGenerator.html" class="dropdown-item">
+        <span>Wallet Generator</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="Utilities_WalletProviders.html" class="dropdown-item">
+        <span>Wallet Providers</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="Utilities_DEX.html" class="dropdown-item">
+        <span>DEX Links</span>
+        <span class="status-dot active"></span>
+      </a>
+      <a href="Utilities_CEX.html" class="dropdown-item">
+        <span>CEX Links</span>
+        <span class="status-dot active"></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <a href="https://validator.info/terra-classic/terravaloper12drl99s75jslgmk48v9fpqxqjadye2dfrgyasw" class="validator-link" target="_blank">
+      <span class="validator-dot"></span>
+      <span>Alpine Validator</span>
+    </a>
+  </div>
+</nav>
+
+<div class="dropdown-overlay" id="dropdownOverlay"></div>
+
+<main>
+
+<!-- BANNER -->
+<section class="banner">
+  <img src="Images/Background.jpg" alt="Alpine mountain landscape" class="banner-img">
+  <div class="banner-overlay"></div>
+</section>
+
+<!-- HERO SECTION -->
+<section class="hero">
+  <svg class="hero-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="heroMountainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#1a4a80;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#2e7ec7;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#a8d4ff;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+    <polygon points="50,10 85,70 15,70" fill="url(#heroMountainGradient)" />
+    <polygon points="50,30 70,60 30,60" fill="rgba(255,255,255,0.15)" />
+  </svg>
+
+  <h1 class="hero-title">Alpine <em>Digital</em></h1>
+  <p class="hero-subtitle">Variant Perception</p>
+  <p class="hero-tagline">See Things Differently. See Things Clearly.</p>
+
+  <div class="hero-socials">
+    <a href="https://x.com/LuncStrategist" target="_blank" class="social-bubble">
+      <span>@LUNCStrategist</span>
+    </a>
+    <a href="https://x.com/AlpineValidator" target="_blank" class="social-bubble">
+      <span>@AlpineValidator</span>
+    </a>
+    <a href="https://x.com/WESODeFi" target="_blank" class="social-bubble">
+      <span>@WESODeFi</span>
+    </a>
+  </div>
+</section>
+
+<!-- MISSION SECTION -->
+<section class="mission">
+  <h2 class="mission-title">Our Mission</h2>
+
+  <p>Alpine Digital identifies and builds around what we believe is the most asymmetric opportunity in digital assets: the recovery of a protocol-grade blockchain architecture whose market capitalisation has detached from its demonstrable technical capability.</p>
+
+  <p>Where the broader market sees an abandoned experiment, we see an undervalued Layer-1 with a reactivated stability protocol, growing development activity, and price levels that imply a probability of ecosystem recovery far lower than the on-chain evidence supports. For informed participants willing to size the position appropriately, the current dislocation between price and protocol capability creates the kind of risk-reward profile that attracted us to digital assets in the first place.</p>
+
+  <p>Everything on this platform — valuation models, portfolio analytics, thesis documentation — exists to help you interrogate that thesis on your own terms and manage the position with the same discipline you would apply to any institutional allocation.</p>
+
+  <div class="mission-disclaimer">
+    Alpine Digital provides analytical tools, educational content and ecosystem infrastructure. Nothing presented constitutes financial advice. All investment decisions and associated risks remain solely with the individual. Past performance is not indicative of future results.
+  </div>
+</section>
+
+<!-- SECTIONS GRID -->
+<section class="sections">
+  <div class="sections-grid">
+    <!-- Card 1: Investment Thesis -->
+    <div class="section-card">
+      <span class="section-num">01</span>
+      <div class="section-header">
+        <h3 class="section-title">Investment Thesis</h3>
+        <span class="section-badge">4</span>
+      </div>
+      <p class="section-subtitle">Foundation & Conviction</p>
+      <p class="section-description">
+        The starting point. Before pricing models, portfolio construction, or any of the tools that follow, you need to decide whether this ecosystem merits your attention — and your capital. This section presents the full narrative: from the original Terra Luna vision through the May 2022 crisis, the emergence of Luna Classic as an independent chain, the structural characteristics that make it compelling, and the specific catalysts we are monitoring.
+      </p>
+      <div class="section-tags">
+        <span class="tag">History of Terra Luna</span>
+        <span class="tag">Emergence of LUNC</span>
+        <span class="tag">What Makes LUNC Compelling</span>
+        <span class="tag">Key Catalysts</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Evaluation & Scenario -->
+    <div class="section-card">
+      <span class="section-num">02</span>
+      <div class="section-header">
+        <h3 class="section-title">Evaluation & Scenario</h3>
+        <span class="section-badge">1+1</span>
+      </div>
+      <p class="section-subtitle">Price Discovery on Your Terms</p>
+      <p class="section-description">
+        These tools help you interrogate the market price — to understand what recovery scenarios are already embedded in current valuations, and where the market may be mispricing the probability of specific outcomes. You define the scenarios and assign the probabilities; the models translate those assumptions into implied fair values so you can decide whether the current price represents an opportunity or something to avoid.
+      </p>
+      <div class="section-tags">
+        <span class="tag">Binomial Pricing Model</span>
+        <span class="tag">Monte Carlo Simulator</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Portfolio Management -->
+    <div class="section-card">
+      <span class="section-num">03</span>
+      <div class="section-header">
+        <h3 class="section-title">Portfolio Management</h3>
+        <span class="section-badge">4</span>
+      </div>
+      <p class="section-subtitle">Institutional-Grade Visibility</p>
+      <p class="section-description">
+        Aggregate holdings across multiple wallets, explore Alpine Digital model portfolios, model payout profiles under different price scenarios, and analyse your positions with the kind of consolidated, multi-wallet visibility that a professional allocator expects from any asset class.
+      </p>
+      <div class="section-tags">
+        <span class="tag">Portfolio Analyzer</span>
+        <span class="tag">Wallet Analyzer</span>
+        <span class="tag">Model Portfolios</span>
+        <span class="tag">LUNC Profit Scenario</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Utilities -->
+    <div class="section-card">
+      <span class="section-num">04</span>
+      <div class="section-header">
+        <h3 class="section-title">Utilities</h3>
+        <span class="section-badge">4</span>
+      </div>
+      <p class="section-subtitle">Operational Infrastructure</p>
+      <p class="section-description">
+        The operational layer. Seed phrase generation with Shamir sharding support, curated wallet provider guides, and direct links to both decentralised and centralised exchanges — everything you need to move from interest to informed engagement with the ecosystem.
+      </p>
+      <div class="section-tags">
+        <span class="tag">Wallet Generator</span>
+        <span class="tag">Wallet Providers</span>
+        <span class="tag">DEX Links</span>
+        <span class="tag">CEX Links</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-title">Alpine Digital — Variant Perception</div>
+  <p class="footer-tagline">Analytical tools & ecosystem infrastructure for the Terra Classic network.</p>
+  <p class="footer-disclaimer">Not financial advice. All investment decisions and associated risks remain solely with the individual.</p>
+  <div class="footer-version">v2.0</div>
+</footer>
+
+<script>
+  const navBrand = document.getElementById('navBrand');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+  const dropdownOverlay = document.getElementById('dropdownOverlay');
+
+  navBrand.addEventListener('click', (e) => {
+    e.stopPropagation();
+    navBrand.classList.toggle('open');
+    dropdownMenu.classList.toggle('open');
+    dropdownOverlay.classList.toggle('open');
+  });
+
+  dropdownOverlay.addEventListener('click', () => {
+    navBrand.classList.remove('open');
+    dropdownMenu.classList.remove('open');
+    dropdownOverlay.classList.remove('open');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!navBrand.contains(e.target) && !dropdownMenu.contains(e.target)) {
+      navBrand.classList.remove('open');
+      dropdownMenu.classList.remove('open');
+      dropdownOverlay.classList.remove('open');
+    }
+  });
+</script>
+
+</body>
+</html>
