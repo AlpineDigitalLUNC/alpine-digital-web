@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpine Digital — Seed Generator</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#060d1a;--surface:#0c1829;--surface2:#111f36;--surface3:#182a48;
+    --border:#1e3a62;--border-glow:#3a7cc6;
+    --text:#c8daf0;--text-dim:#6b8cb8;--text-bright:#ffffff;
+    --accent:#2e7ec7;--accent2:#4a9de8;--accent3:#8cc8f5;
+    --ice:#b0daff;--snow:#daeeff;
+    --mu-color:#7b9ab8;
+    --success:#34d399;--warning:#7b9ab8;--danger:#f87171;
+    --gradient:linear-gradient(135deg,#0f2640,#1e5a9e,#4a9de8);
+    --gradient-ice:linear-gradient(135deg,#1a4a80,#2e7ec7,#5eaeff);
+    --gradient-mountain:linear-gradient(180deg,#060d1a 0%,#0c1829 40%,#111f36 100%);
+    --radius:12px;--radius-sm:8px;
+  }
+  html{font-size:16px;scroll-behavior:smooth}
+  body{
+    font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:#0a1020;color:var(--text);min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
+  }
+
+  /* ========== MOUNTAIN IMAGE BACKGROUND — FULL PAGE ========== */
+  .mountain-bg{
+    position:fixed;top:0;left:0;width:100%;height:100vh;overflow:hidden;pointer-events:none;z-index:0;
+  }
+  .mountain-bg img{
+    width:100%;height:100%;object-fit:cover;object-position:center top;
+  }
+  .mountain-bg svg{width:100%;height:100%}
+
+  /* ========== HEADER ========== */
+  .header{
+    text-align:center;padding:60px 24px 32px;max-width:700px;position:relative;z-index:1;
+  }
+  .alpine-mark{
+    display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px;
+  }
+  .alpine-icon{
+    width:56px;height:56px;position:relative;
+  }
+  .alpine-icon svg{width:100%;height:100%}
+  .logo{
+    font-size:2.6rem;font-weight:800;letter-spacing:-1px;color:var(--text-bright);
+  }
+  .logo span{
+    font-weight:300;color:var(--accent2);
+  }
+  .sub-title{
+    font-size:1.15rem;font-weight:600;
+    background:var(--gradient-ice);-webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;margin-bottom:4px;letter-spacing:.5px;
+  }
+  .tagline{color:var(--text-dim);font-size:.9rem;letter-spacing:.3px}
+  .bip-badge{
+    display:inline-flex;align-items:center;gap:6px;margin-top:14px;
+    background:rgba(30,74,128,0.25);border:1px solid rgba(74,157,232,0.2);
+    border-radius:20px;padding:5px 16px;font-size:.72rem;color:var(--accent2);
+    font-weight:600;letter-spacing:1.2px;text-transform:uppercase;
+  }
+  .bip-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success)}
+
+  /* ========== CONTAINER ========== */
+  .container{width:100%;max-width:960px;padding:0 24px 48px;position:relative;z-index:1}
+
+  /* ========== CARD ========== */
+  .card{
+    background:rgba(8,16,30,0.82);border:1px solid rgba(30,58,98,0.5);border-radius:var(--radius);
+    padding:32px;margin-bottom:24px;position:relative;overflow:hidden;
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    box-shadow:0 4px 30px rgba(0,0,0,0.4);
+  }
+  .card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:var(--gradient-ice);opacity:.8;
+  }
+  .card-title{
+    font-size:1.1rem;font-weight:700;margin-bottom:20px;color:var(--text-bright);
+    display:flex;align-items:center;gap:10px;
+  }
+  .card-title .icon{
+    width:34px;height:34px;border-radius:var(--radius-sm);
+    background:rgba(30,74,128,0.3);border:1px solid rgba(74,157,232,0.2);
+    display:flex;align-items:center;justify-content:center;font-size:1rem;
+  }
+
+  /* ========== FORM CONTROLS ========== */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+  .form-group{display:flex;flex-direction:column;gap:6px}
+  .form-group.full{grid-column:1/-1}
+  label{font-size:.75rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+  select,input[type="number"]{
+    background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:12px 16px;color:var(--text-bright);font-size:.95rem;outline:none;
+    transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%236b8ab5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer;
+  }
+  select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(46,134,222,.25)}
+  select option{background:var(--surface2);color:var(--text)}
+
+  /* ========== TOGGLE GROUP ========== */
+  .toggle-group{display:flex;gap:0;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)}
+  .toggle-btn{
+    flex:1;padding:10px 16px;background:var(--surface2);color:var(--text-dim);
+    border:none;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;
+    font-family:inherit;
+  }
+  .toggle-btn:not(:last-child){border-right:1px solid var(--border)}
+  .toggle-btn.active{background:var(--accent);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .toggle-btn:hover:not(.active){background:var(--surface3);color:var(--text)}
+
+  /* ========== BUTTONS ========== */
+  .btn-primary{
+    width:100%;padding:16px 32px;border:none;border-radius:var(--radius-sm);
+    background:var(--gradient-ice);color:#fff;font-size:1.05rem;font-weight:700;
+    cursor:pointer;letter-spacing:.5px;position:relative;overflow:hidden;
+    transition:transform .15s,box-shadow .15s;font-family:inherit;
+    text-shadow:0 1px 3px rgba(0,0,0,.2);
+  }
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(59,142,219,.4)}
+  .btn-primary:active{transform:translateY(0)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+  .btn-secondary{
+    padding:10px 20px;border:1px solid var(--border);border-radius:var(--radius-sm);
+    background:var(--surface2);color:var(--text);font-size:.85rem;font-weight:600;
+    cursor:pointer;transition:all .2s;font-family:inherit;
+  }
+  .btn-secondary:hover{border-color:var(--accent);background:var(--surface3);color:var(--text-bright)}
+
+  /* ========== PROGRESS ========== */
+  .progress-wrap{display:none;margin-top:16px}
+  .progress-wrap.visible{display:block}
+  .progress-bar{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;margin-bottom:8px}
+  .progress-fill{height:100%;background:var(--gradient-ice);border-radius:3px;width:0;transition:width .3s}
+  .progress-text{font-size:.8rem;color:var(--text-dim);display:flex;justify-content:space-between}
+
+  /* ========== OUTPUT SECTION ========== */
+  .output-section{display:none}
+  .output-section.visible{display:block}
+  .output-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+  .output-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* ========== STATS ========== */
+  .stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .stat{
+    background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:12px 18px;display:flex;flex-direction:column;gap:2px;min-width:120px;
+    position:relative;overflow:hidden;
+  }
+  .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-ice);opacity:.4}
+  .stat-value{font-size:1.3rem;font-weight:800;color:var(--text-bright)}
+  .stat-label{font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px}
+
+  /* ========== SEED LIST ========== */
+  .seed-list{
+    max-height:500px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);
+    background:var(--surface2);
+  }
+  .seed-list::-webkit-scrollbar{width:6px}
+  .seed-list::-webkit-scrollbar-track{background:transparent}
+  .seed-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  .seed-list::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+  .seed-item{
+    padding:14px 18px;border-bottom:1px solid rgba(30,58,98,.6);
+    transition:background .15s;cursor:pointer;
+  }
+  .seed-item:last-child{border-bottom:none}
+  .seed-item:hover{background:rgba(46,126,199,.08)}
+  .seed-num{font-size:.7rem;color:var(--accent2);font-weight:700;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase}
+  .seed-words{
+    font-family:'SF Mono',SFMono-Regular,Consolas,'Liberation Mono',monospace;
+    font-size:.85rem;line-height:1.6;color:var(--text);word-spacing:4px;
+  }
+  .seed-words .word{
+    display:inline-block;background:rgba(30,74,128,.15);border-radius:4px;
+    padding:1px 6px;margin:2px 2px;transition:background .15s;
+  }
+  .seed-words .word.alpha{background:rgba(46,126,199,.2);border-left:2px solid var(--accent)}
+  .seed-words .word.mu{background:rgba(123,154,184,.15);border-left:2px solid var(--mu-color)}
+  .seed-words .word.omega{background:rgba(163,213,255,.12);border-left:2px solid var(--accent3)}
+
+  /* ========== SHARD LABELS ========== */
+  .shard-labels{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+  .shard-label{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text-dim);font-weight:600}
+  .shard-dot{width:8px;height:8px;border-radius:2px}
+  .shard-dot.alpha{background:var(--accent)}
+  .shard-dot.mu{background:var(--mu-color)}
+  .shard-dot.omega{background:var(--accent3)}
+
+  /* ========== TABS ========== */
+  .tab-bar{display:flex;gap:0;margin-bottom:16px;border-bottom:2px solid var(--border)}
+  .tab{
+    padding:10px 20px;font-size:.85rem;font-weight:600;color:var(--text-dim);
+    cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;
+    background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;
+  }
+  .tab.active{color:var(--accent2);border-bottom-color:var(--accent2)}
+  .tab:hover:not(.active){color:var(--text)}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+
+  /* ========== NOTICE ========== */
+  .notice{
+    background:rgba(30,74,128,.15);border:1px solid rgba(74,157,232,.18);
+    border-radius:var(--radius-sm);padding:14px 18px;font-size:.82rem;
+    color:var(--accent3);line-height:1.6;margin-top:16px;
+  }
+  .notice strong{color:var(--accent2)}
+
+  /* ========== TOAST ========== */
+  .toast{
+    position:fixed;bottom:24px;right:24px;background:var(--surface);
+    border:1px solid var(--success);border-radius:var(--radius-sm);
+    padding:12px 20px;color:var(--success);font-size:.85rem;font-weight:600;
+    transform:translateY(100px);opacity:0;transition:all .3s;z-index:9999;
+    box-shadow:0 8px 32px rgba(0,0,0,.5);
+  }
+  .toast.show{transform:translateY(0);opacity:1}
+
+  /* ========== ENTROPY VIZ ========== */
+  .entropy-viz{height:4px;border-radius:2px;margin-top:8px;overflow:hidden;background:var(--surface3)}
+  .entropy-fill{height:100%;border-radius:2px;transition:width .5s}
+  .entropy-fill.low{background:var(--accent);width:33%}
+  .entropy-fill.med{background:var(--accent2);width:66%}
+  .entropy-fill.high{background:var(--accent3);width:100%}
+
+  /* ========== SPINNER ========== */
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spinner{
+    width:16px;height:16px;border:2px solid rgba(255,255,255,.3);
+    border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;
+    display:inline-block;vertical-align:middle;margin-right:8px;
+  }
+
+  /* ========== FOOTER ========== */
+  .footer{
+    text-align:center;padding:24px;color:var(--text-dim);font-size:.75rem;
+    border-top:1px solid var(--border);width:100%;max-width:960px;margin-top:auto;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+  }
+  .footer-brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--text-dim)}
+  .footer-brand svg{width:18px;height:18px;opacity:.6}
+  .footer a{color:var(--accent2);text-decoration:none}
+  .footer a:hover{text-decoration:underline}
+
+  /* ========== RESPONSIVE ========== */
+  @media(max-width:600px){
+    .header{padding:32px 16px 24px}
+    .logo{font-size:1.8rem}
+    .card{padding:20px}
+    .stats{flex-direction:column}
+    .alpine-mark{flex-direction:column;gap:8px}
+  }
+</style>
+</head>
+<body>
+
+<!-- Mountain background — uses alpine-bg.jpg (place your image next to this HTML file) -->
+<div class="mountain-bg">
+  <img src="alpine-bg.jpg" alt="" loading="eager">
+</div>
+
+<header class="header">
+  <div class="alpine-mark">
+    <!-- Alpine "A" mountain icon -->
+    <div class="alpine-icon">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="aGrad" x1="16" y1="56" x2="48" y2="8">
+            <stop offset="0%" stop-color="#0f2e5e"/>
+            <stop offset="40%" stop-color="#2e7ec7"/>
+            <stop offset="100%" stop-color="#8cc8f5"/>
+          </linearGradient>
+        </defs>
+        <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="url(#aGrad)"/>
+        <path d="M32 4L4 56h20l8-16 8 16h20L32 4z" fill="none" stroke="#a3d5ff" stroke-width="1" opacity="0.4"/>
+        <path d="M22 44l10-20 10 20" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+        <!-- Snow cap -->
+        <path d="M32 4L25 18h14L32 4z" fill="#fff" opacity="0.5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo">ALPINE <span>DIGITAL</span></div>
+    </div>
+  </div>
+  <div class="sub-title">Seed Phrase Generator</div>
+  <p class="tagline">Cryptographically Secure BIP-39 Mnemonic Generation</p>
+  <div class="bip-badge">BIP-39 Compliant &bull; Client-Side Only &bull; Zero Trust</div>
+</header>
+
+<main class="container">
+  <!-- Configuration Card -->
+  <div class="card">
+    <div class="card-title">
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 14h14L8 1z" stroke="#54a0ff" stroke-width="1.5" fill="none"/><circle cx="8" cy="10" r="1" fill="#54a0ff"/></svg>
+      </div>
+      Configuration
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Word Count</label>
+        <div class="toggle-group" id="wordCountGroup">
+          <button class="toggle-btn active" data-val="12">12 Words</button>
+          <button class="toggle-btn" data-val="18">18 Words</button>
+          <button class="toggle-btn" data-val="24">24 Words</button>
+        </div>
+        <div class="entropy-viz"><div class="entropy-fill low" id="entropyBar"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <span style="font-size:.7rem;color:var(--text-dim)" id="entropyLabel">128-bit entropy</span>
+          <span style="font-size:.7rem;color:var(--text-dim)" id="checksumLabel">4-bit checksum</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Number of Phrases</label>
+        <input type="number" id="numPhrases" value="10" min="1" max="100000" step="1">
+        <span style="font-size:.7rem;color:var(--text-dim)">Max: 100,000 phrases</span>
+      </div>
+
+      <div class="form-group">
+        <label>Sharding</label>
+        <div class="toggle-group" id="shardGroup">
+          <button class="toggle-btn active" data-val="1">None</button>
+          <button class="toggle-btn" data-val="2">2-Shard &#945;/&#969;</button>
+          <button class="toggle-btn" data-val="3">3-Shard &#945;/&#956;/&#969;</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Output Format</label>
+        <select id="outputFormat">
+          <option value="both">Full + Shards</option>
+          <option value="full">Full Phrases Only</option>
+          <option value="sharded">Shards Only</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:24px">
+      <button class="btn-primary" id="generateBtn" onclick="generate()">
+        &#9650; Generate Seed Phrases
+      </button>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text">
+        <span id="progressLabel">Generating...</span>
+        <span id="progressPercent">0%</span>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>&#9650; Security:</strong> All generation happens locally in your browser using the Web Crypto API (CSPRNG). No data is transmitted to any server. For maximum security, disconnect from the internet before generating and save output to an encrypted drive. Alpine Digital does not store, transmit, or have access to any generated phrases.
+    </div>
+  </div>
+
+  <!-- Output Section -->
+  <div class="output-section" id="outputSection">
+    <div class="card">
+      <div class="output-header">
+        <div class="card-title" style="margin-bottom:0">
+          <div class="icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1.5" stroke="#54a0ff" stroke-width="1.5" fill="none"/><path d="M5 4V2.5A2.5 2.5 0 0 1 11 2.5V4" stroke="#54a0ff" stroke-width="1.5"/></svg>
+          </div>
+          Generated Phrases
+        </div>
+        <div class="output-actions">
+          <button class="btn-secondary" onclick="exportAll()">&#128190; Export All</button>
+          <button class="btn-secondary" onclick="exportShards()">&#128194; Export Shards</button>
+          <button class="btn-secondary" onclick="copyAll()">&#128203; Copy All</button>
+        </div>
+      </div>
+
+      <div class="stats" id="statsBar">
+        <div class="stat"><span class="stat-value" id="statCount">0</span><span class="stat-label">Phrases</span></div>
+        <div class="stat"><span class="stat-value" id="statWords">0</span><span class="stat-label">Words Each</span></div>
+        <div class="stat"><span class="stat-value" id="statEntropy">0</span><span class="stat-label">Bits Entropy</span></div>
+        <div class="stat"><span class="stat-value" id="statShards">0</span><span class="stat-label">Shards</span></div>
+      </div>
+
+      <div class="shard-labels" id="shardLabels" style="display:none">
+        <div class="shard-label"><div class="shard-dot alpha"></div> Alpha (&#945;)</div>
+        <div class="shard-label" id="muLabel" style="display:none"><div class="shard-dot mu"></div> Mu (&#956;)</div>
+        <div class="shard-label"><div class="shard-dot omega"></div> Omega (&#969;)</div>
+      </div>
+
+      <div class="tab-bar" id="tabBar">
+        <button class="tab active" data-tab="all" onclick="switchTab('all',this)">All Phrases</button>
+        <button class="tab" data-tab="alpha" onclick="switchTab('alpha',this)" style="display:none">Alpha Shards</button>
+        <button class="tab" data-tab="mu" onclick="switchTab('mu',this)" style="display:none">Mu Shards</button>
+        <button class="tab" data-tab="omega" onclick="switchTab('omega',this)" style="display:none">Omega Shards</button>
+      </div>
+
+      <div class="tab-content active" id="tab-all">
+        <div class="seed-list" id="seedListAll"></div>
+      </div>
+      <div class="tab-content" id="tab-alpha">
+        <div class="seed-list" id="seedListAlpha"></div>
+      </div>
+      <div class="tab-content" id="tab-mu">
+        <div class="seed-list" id="seedListMu"></div>
+      </div>
+      <div class="tab-content" id="tab-omega">
+        <div class="seed-list" id="seedListOmega"></div>
+      </div>
+
+      <div style="text-align:center;margin-top:16px;display:none" id="showMoreWrap">
+        <button class="btn-secondary" id="showMoreBtn" onclick="showMore()">Show More</button>
+        <span style="font-size:.75rem;color:var(--text-dim);margin-left:8px" id="showMoreLabel"></span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M32 8L8 52h16l8-16 8 16h16L32 8z" fill="#5eaeff" opacity="0.6"/>
+    </svg>
+    Alpine Digital &mdash; Seed Generator v1.0
+  </div>
+  <div>BIP-39 Compliant &bull; 100% Client-Side &bull; <a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki" target="_blank" rel="noopener">BIP-39 Specification</a></div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// BIP-39 WORD LIST (English, 2048 words)
+// ============================================================
+const BIP39_WORDLIST = ["abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd", "abuse", "access", "accident", "account", "accuse", "achieve", "acid", "acoustic", "acquire", "across", "act", "action", "actor", "actress", "actual", "adapt", "add", "addict", "address", "adjust", "admit", "adult", "advance", "advice", "aerobic", "affair", "afford", "afraid", "again", "age", "agent", "agree", "ahead", "aim", "air", "airport", "aisle", "alarm", "album", "alcohol", "alert", "alien", "all", "alley", "allow", "almost", "alone", "alpha", "already", "also", "alter", "always", "amateur", "amazing", "among", "amount", "amused", "analyst", "anchor", "ancient", "anger", "angle", "angry", "animal", "ankle", "announce", "annual", "another", "answer", "antenna", "antique", "anxiety", "any", "apart", "apology", "appear", "apple", "approve", "april", "arch", "arctic", "area", "arena", "argue", "arm", "armed", "armor", "army", "around", "arrange", "arrest", "arrive", "arrow", "art", "artefact", "artist", "artwork", "ask", "aspect", "assault", "asset", "assist", "assume", "asthma", "athlete", "atom", "attack", "attend", "attitude", "attract", "auction", "audit", "august", "aunt", "author", "auto", "autumn", "average", "avocado", "avoid", "awake", "aware", "away", "awesome", "awful", "awkward", "axis", "baby", "bachelor", "bacon", "badge", "bag", "balance", "balcony", "ball", "bamboo", "banana", "banner", "bar", "barely", "bargain", "barrel", "base", "basic", "basket", "battle", "beach", "bean", "beauty", "because", "become", "beef", "before", "begin", "behave", "behind", "believe", "below", "belt", "bench", "benefit", "best", "betray", "better", "between", "beyond", "bicycle", "bid", "bike", "bind", "biology", "bird", "birth", "bitter", "black", "blade", "blame", "blanket", "blast", "bleak", "bless", "blind", "blood", "blossom", "blouse", "blue", "blur", "blush", "board", "boat", "body", "boil", "bomb", "bone", "bonus", "book", "boost", "border", "boring", "borrow", "boss", "bottom", "bounce", "box", "boy", "bracket", "brain", "brand", "brass", "brave", "bread", "breeze", "brick", "bridge", "brief", "bright", "bring", "brisk", "broccoli", "broken", "bronze", "broom", "brother", "brown", "brush", "bubble", "buddy", "budget", "buffalo", "build", "bulb", "bulk", "bullet", "bundle", "bunker", "burden", "burger", "burst", "bus", "business", "busy", "butter", "buyer", "buzz", "cabbage", "cabin", "cable", "cactus", "cage", "cake", "call", "calm", "camera", "camp", "can", "canal", "cancel", "candy", "cannon", "canoe", "canvas", "canyon", "capable", "capital", "captain", "car", "carbon", "card", "cargo", "carpet", "carry", "cart", "case", "cash", "casino", "castle", "casual", "cat", "catalog", "catch", "category", "cattle", "caught", "cause", "caution", "cave", "ceiling", "celery", "cement", "census", "century", "cereal", "certain", "chair", "chalk", "champion", "change", "chaos", "chapter", "charge", "chase", "chat", "cheap", "check", "cheese", "chef", "cherry", "chest", "chicken", "chief", "child", "chimney", "choice", "choose", "chronic", "chuckle", "chunk", "churn", "cigar", "cinnamon", "circle", "citizen", "city", "civil", "claim", "clap", "clarify", "claw", "clay", "clean", "clerk", "clever", "click", "client", "cliff", "climb", "clinic", "clip", "clock", "clog", "close", "cloth", "cloud", "clown", "club", "clump", "cluster", "clutch", "coach", "coast", "coconut", "code", "coffee", "coil", "coin", "collect", "color", "column", "combine", "come", "comfort", "comic", "common", "company", "concert", "conduct", "confirm", "congress", "connect", "consider", "control", "convince", "cook", "cool", "copper", "copy", "coral", "core", "corn", "correct", "cost", "cotton", "couch", "country", "couple", "course", "cousin", "cover", "coyote", "crack", "cradle", "craft", "cram", "crane", "crash", "crater", "crawl", "crazy", "cream", "credit", "creek", "crew", "cricket", "crime", "crisp", "critic", "crop", "cross", "crouch", "crowd", "crucial", "cruel", "cruise", "crumble", "crunch", "crush", "cry", "crystal", "cube", "culture", "cup", "cupboard", "curious", "current", "curtain", "curve", "cushion", "custom", "cute", "cycle", "dad", "damage", "damp", "dance", "danger", "daring", "dash", "daughter", "dawn", "day", "deal", "debate", "debris", "decade", "december", "decide", "decline", "decorate", "decrease", "deer", "defense", "define", "defy", "degree", "delay", "deliver", "demand", "demise", "denial", "dentist", "deny", "depart", "depend", "deposit", "depth", "deputy", "derive", "describe", "desert", "design", "desk", "despair", "destroy", "detail", "detect", "develop", "device", "devote", "diagram", "dial", "diamond", "diary", "dice", "diesel", "diet", "differ", "digital", "dignity", "dilemma", "dinner", "dinosaur", "direct", "dirt", "disagree", "discover", "disease", "dish", "dismiss", "disorder", "display", "distance", "divert", "divide", "divorce", "dizzy", "doctor", "document", "dog", "doll", "dolphin", "domain", "donate", "donkey", "donor", "door", "dose", "double", "dove", "draft", "dragon", "drama", "drastic", "draw", "dream", "dress", "drift", "drill", "drink", "drip", "drive", "drop", "drum", "dry", "duck", "dumb", "dune", "during", "dust", "dutch", "duty", "dwarf", "dynamic", "eager", "eagle", "early", "earn", "earth", "easily", "east", "easy", "echo", "ecology", "economy", "edge", "edit", "educate", "effort", "egg", "eight", "either", "elbow", "elder", "electric", "elegant", "element", "elephant", "elevator", "elite", "else", "embark", "embody", "embrace", "emerge", "emotion", "employ", "empower", "empty", "enable", "enact", "end", "endless", "endorse", "enemy", "energy", "enforce", "engage", "engine", "enhance", "enjoy", "enlist", "enough", "enrich", "enroll", "ensure", "enter", "entire", "entry", "envelope", "episode", "equal", "equip", "era", "erase", "erode", "erosion", "error", "erupt", "escape", "essay", "essence", "estate", "eternal", "ethics", "evidence", "evil", "evoke", "evolve", "exact", "example", "excess", "exchange", "excite", "exclude", "excuse", "execute", "exercise", "exhaust", "exhibit", "exile", "exist", "exit", "exotic", "expand", "expect", "expire", "explain", "expose", "express", "extend", "extra", "eye", "eyebrow", "fabric", "face", "faculty", "fade", "faint", "faith", "fall", "false", "fame", "family", "famous", "fan", "fancy", "fantasy", "farm", "fashion", "fat", "fatal", "father", "fatigue", "fault", "favorite", "feature", "february", "federal", "fee", "feed", "feel", "female", "fence", "festival", "fetch", "fever", "few", "fiber", "fiction", "field", "figure", "file", "film", "filter", "final", "find", "fine", "finger", "finish", "fire", "firm", "first", "fiscal", "fish", "fit", "fitness", "fix", "flag", "flame", "flash", "flat", "flavor", "flee", "flight", "flip", "float", "flock", "floor", "flower", "fluid", "flush", "fly", "foam", "focus", "fog", "foil", "fold", "follow", "food", "foot", "force", "forest", "forget", "fork", "fortune", "forum", "forward", "fossil", "foster", "found", "fox", "fragile", "frame", "frequent", "fresh", "friend", "fringe", "frog", "front", "frost", "frown", "frozen", "fruit", "fuel", "fun", "funny", "furnace", "fury", "future", "gadget", "gain", "galaxy", "gallery", "game", "gap", "garage", "garbage", "garden", "garlic", "garment", "gas", "gasp", "gate", "gather", "gauge", "gaze", "general", "genius", "genre", "gentle", "genuine", "gesture", "ghost", "giant", "gift", "giggle", "ginger", "giraffe", "girl", "give", "glad", "glance", "glare", "glass", "glide", "glimpse", "globe", "gloom", "glory", "glove", "glow", "glue", "goat", "goddess", "gold", "good", "goose", "gorilla", "gospel", "gossip", "govern", "gown", "grab", "grace", "grain", "grant", "grape", "grass", "gravity", "great", "green", "grid", "grief", "grit", "grocery", "group", "grow", "grunt", "guard", "guess", "guide", "guilt", "guitar", "gun", "gym", "habit", "hair", "half", "hammer", "hamster", "hand", "happy", "harbor", "hard", "harsh", "harvest", "hat", "have", "hawk", "hazard", "head", "health", "heart", "heavy", "hedgehog", "height", "hello", "helmet", "help", "hen", "hero", "hidden", "high", "hill", "hint", "hip", "hire", "history", "hobby", "hockey", "hold", "hole", "holiday", "hollow", "home", "honey", "hood", "hope", "horn", "horror", "horse", "hospital", "host", "hotel", "hour", "hover", "hub", "huge", "human", "humble", "humor", "hundred", "hungry", "hunt", "hurdle", "hurry", "hurt", "husband", "hybrid", "ice", "icon", "idea", "identify", "idle", "ignore", "ill", "illegal", "illness", "image", "imitate", "immense", "immune", "impact", "impose", "improve", "impulse", "inch", "include", "income", "increase", "index", "indicate", "indoor", "industry", "infant", "inflict", "inform", "inhale", "inherit", "initial", "inject", "injury", "inmate", "inner", "innocent", "input", "inquiry", "insane", "insect", "inside", "inspire", "install", "intact", "interest", "into", "invest", "invite", "involve", "iron", "island", "isolate", "issue", "item", "ivory", "jacket", "jaguar", "jar", "jazz", "jealous", "jeans", "jelly", "jewel", "job", "join", "joke", "journey", "joy", "judge", "juice", "jump", "jungle", "junior", "junk", "just", "kangaroo", "keen", "keep", "ketchup", "key", "kick", "kid", "kidney", "kind", "kingdom", "kiss", "kit", "kitchen", "kite", "kitten", "kiwi", "knee", "knife", "knock", "know", "lab", "label", "labor", "ladder", "lady", "lake", "lamp", "language", "laptop", "large", "later", "latin", "laugh", "laundry", "lava", "law", "lawn", "lawsuit", "layer", "lazy", "leader", "leaf", "learn", "leave", "lecture", "left", "leg", "legal", "legend", "leisure", "lemon", "lend", "length", "lens", "leopard", "lesson", "letter", "level", "liar", "liberty", "library", "license", "life", "lift", "light", "like", "limb", "limit", "link", "lion", "liquid", "list", "little", "live", "lizard", "load", "loan", "lobster", "local", "lock", "logic", "lonely", "long", "loop", "lottery", "loud", "lounge", "love", "loyal", "lucky", "luggage", "lumber", "lunar", "lunch", "luxury", "lyrics", "machine", "mad", "magic", "magnet", "maid", "mail", "main", "major", "make", "mammal", "man", "manage", "mandate", "mango", "mansion", "manual", "maple", "marble", "march", "margin", "marine", "market", "marriage", "mask", "mass", "master", "match", "material", "math", "matrix", "matter", "maximum", "maze", "meadow", "mean", "measure", "meat", "mechanic", "medal", "media", "melody", "melt", "member", "memory", "mention", "menu", "mercy", "merge", "merit", "merry", "mesh", "message", "metal", "method", "middle", "midnight", "milk", "million", "mimic", "mind", "minimum", "minor", "minute", "miracle", "mirror", "misery", "miss", "mistake", "mix", "mixed", "mixture", "mobile", "model", "modify", "mom", "moment", "monitor", "monkey", "monster", "month", "moon", "moral", "more", "morning", "mosquito", "mother", "motion", "motor", "mountain", "mouse", "move", "movie", "much", "muffin", "mule", "multiply", "muscle", "museum", "mushroom", "music", "must", "mutual", "myself", "mystery", "myth", "naive", "name", "napkin", "narrow", "nasty", "nation", "nature", "near", "neck", "need", "negative", "neglect", "neither", "nephew", "nerve", "nest", "net", "network", "neutral", "never", "news", "next", "nice", "night", "noble", "noise", "nominee", "noodle", "normal", "north", "nose", "notable", "note", "nothing", "notice", "novel", "now", "nuclear", "number", "nurse", "nut", "oak", "obey", "object", "oblige", "obscure", "observe", "obtain", "obvious", "occur", "ocean", "october", "odor", "off", "offer", "office", "often", "oil", "okay", "old", "olive", "olympic", "omit", "once", "one", "onion", "online", "only", "open", "opera", "opinion", "oppose", "option", "orange", "orbit", "orchard", "order", "ordinary", "organ", "orient", "original", "orphan", "ostrich", "other", "outdoor", "outer", "output", "outside", "oval", "oven", "over", "own", "owner", "oxygen", "oyster", "ozone", "pact", "paddle", "page", "pair", "palace", "palm", "panda", "panel", "panic", "panther", "paper", "parade", "parent", "park", "parrot", "party", "pass", "patch", "path", "patient", "patrol", "pattern", "pause", "pave", "payment", "peace", "peanut", "pear", "peasant", "pelican", "pen", "penalty", "pencil", "people", "pepper", "perfect", "permit", "person", "pet", "phone", "photo", "phrase", "physical", "piano", "picnic", "picture", "piece", "pig", "pigeon", "pill", "pilot", "pink", "pioneer", "pipe", "pistol", "pitch", "pizza", "place", "planet", "plastic", "plate", "play", "please", "pledge", "pluck", "plug", "plunge", "poem", "poet", "point", "polar", "pole", "police", "pond", "pony", "pool", "popular", "portion", "position", "possible", "post", "potato", "pottery", "poverty", "powder", "power", "practice", "praise", "predict", "prefer", "prepare", "present", "pretty", "prevent", "price", "pride", "primary", "print", "priority", "prison", "private", "prize", "problem", "process", "produce", "profit", "program", "project", "promote", "proof", "property", "prosper", "protect", "proud", "provide", "public", "pudding", "pull", "pulp", "pulse", "pumpkin", "punch", "pupil", "puppy", "purchase", "purity", "purpose", "purse", "push", "put", "puzzle", "pyramid", "quality", "quantum", "quarter", "question", "quick", "quit", "quiz", "quote", "rabbit", "raccoon", "race", "rack", "radar", "radio", "rail", "rain", "raise", "rally", "ramp", "ranch", "random", "range", "rapid", "rare", "rate", "rather", "raven", "raw", "razor", "ready", "real", "reason", "rebel", "rebuild", "recall", "receive", "recipe", "record", "recycle", "reduce", "reflect", "reform", "refuse", "region", "regret", "regular", "reject", "relax", "release", "relief", "rely", "remain", "remember", "remind", "remove", "render", "renew", "rent", "reopen", "repair", "repeat", "replace", "report", "require", "rescue", "resemble", "resist", "resource", "response", "result", "retire", "retreat", "return", "reunion", "reveal", "review", "reward", "rhythm", "rib", "ribbon", "rice", "rich", "ride", "ridge", "rifle", "right", "rigid", "ring", "riot", "ripple", "risk", "ritual", "rival", "river", "road", "roast", "robot", "robust", "rocket", "romance", "roof", "rookie", "room", "rose", "rotate", "rough", "round", "route", "royal", "rubber", "rude", "rug", "rule", "run", "runway", "rural", "sad", "saddle", "sadness", "safe", "sail", "salad", "salmon", "salon", "salt", "salute", "same", "sample", "sand", "satisfy", "satoshi", "sauce", "sausage", "save", "say", "scale", "scan", "scare", "scatter", "scene", "scheme", "school", "science", "scissors", "scorpion", "scout", "scrap", "screen", "script", "scrub", "sea", "search", "season", "seat", "second", "secret", "section", "security", "seed", "seek", "segment", "select", "sell", "seminar", "senior", "sense", "sentence", "series", "service", "session", "settle", "setup", "seven", "shadow", "shaft", "shallow", "share", "shed", "shell", "sheriff", "shield", "shift", "shine", "ship", "shiver", "shock", "shoe", "shoot", "shop", "short", "shoulder", "shove", "shrimp", "shrug", "shuffle", "shy", "sibling", "sick", "side", "siege", "sight", "sign", "silent", "silk", "silly", "silver", "similar", "simple", "since", "sing", "siren", "sister", "situate", "six", "size", "skate", "sketch", "ski", "skill", "skin", "skirt", "skull", "slab", "slam", "sleep", "slender", "slice", "slide", "slight", "slim", "slogan", "slot", "slow", "slush", "small", "smart", "smile", "smoke", "smooth", "snack", "snake", "snap", "sniff", "snow", "soap", "soccer", "social", "sock", "soda", "soft", "solar", "soldier", "solid", "solution", "solve", "someone", "song", "soon", "sorry", "sort", "soul", "sound", "soup", "source", "south", "space", "spare", "spatial", "spawn", "speak", "special", "speed", "spell", "spend", "sphere", "spice", "spider", "spike", "spin", "spirit", "split", "spoil", "sponsor", "spoon", "sport", "spot", "spray", "spread", "spring", "spy", "square", "squeeze", "squirrel", "stable", "stadium", "staff", "stage", "stairs", "stamp", "stand", "start", "state", "stay", "steak", "steel", "stem", "step", "stereo", "stick", "still", "sting", "stock", "stomach", "stone", "stool", "story", "stove", "strategy", "street", "strike", "strong", "struggle", "student", "stuff", "stumble", "style", "subject", "submit", "subway", "success", "such", "sudden", "suffer", "sugar", "suggest", "suit", "summer", "sun", "sunny", "sunset", "super", "supply", "supreme", "sure", "surface", "surge", "surprise", "surround", "survey", "suspect", "sustain", "swallow", "swamp", "swap", "swarm", "swear", "sweet", "swift", "swim", "swing", "switch", "sword", "symbol", "symptom", "syrup", "system", "table", "tackle", "tag", "tail", "talent", "talk", "tank", "tape", "target", "task", "taste", "tattoo", "taxi", "teach", "team", "tell", "ten", "tenant", "tennis", "tent", "term", "test", "text", "thank", "that", "theme", "then", "theory", "there", "they", "thing", "this", "thought", "three", "thrive", "throw", "thumb", "thunder", "ticket", "tide", "tiger", "tilt", "timber", "time", "tiny", "tip", "tired", "tissue", "title", "toast", "tobacco", "today", "toddler", "toe", "together", "toilet", "token", "tomato", "tomorrow", "tone", "tongue", "tonight", "tool", "tooth", "top", "topic", "topple", "torch", "tornado", "tortoise", "toss", "total", "tourist", "toward", "tower", "town", "toy", "track", "trade", "traffic", "tragic", "train", "transfer", "trap", "trash", "travel", "tray", "treat", "tree", "trend", "trial", "tribe", "trick", "trigger", "trim", "trip", "trophy", "trouble", "truck", "true", "truly", "trumpet", "trust", "truth", "try", "tube", "tuition", "tumble", "tuna", "tunnel", "turkey", "turn", "turtle", "twelve", "twenty", "twice", "twin", "twist", "two", "type", "typical", "ugly", "umbrella", "unable", "unaware", "uncle", "uncover", "under", "undo", "unfair", "unfold", "unhappy", "uniform", "unique", "unit", "universe", "unknown", "unlock", "until", "unusual", "unveil", "update", "upgrade", "uphold", "upon", "upper", "upset", "urban", "urge", "usage", "use", "used", "useful", "useless", "usual", "utility", "vacant", "vacuum", "vague", "valid", "valley", "valve", "van", "vanish", "vapor", "various", "vast", "vault", "vehicle", "velvet", "vendor", "venture", "venue", "verb", "verify", "version", "very", "vessel", "veteran", "viable", "vibrant", "vicious", "victory", "video", "view", "village", "vintage", "violin", "virtual", "virus", "visa", "visit", "visual", "vital", "vivid", "vocal", "voice", "void", "volcano", "volume", "vote", "voyage", "wage", "wagon", "wait", "walk", "wall", "walnut", "want", "warfare", "warm", "warrior", "wash", "wasp", "waste", "water", "wave", "way", "wealth", "weapon", "wear", "weasel", "weather", "web", "wedding", "weekend", "weird", "welcome", "west", "wet", "whale", "what", "wheat", "wheel", "when", "where", "whip", "whisper", "wide", "width", "wife", "wild", "will", "win", "window", "wine", "wing", "wink", "winner", "winter", "wire", "wisdom", "wise", "wish", "witness", "wolf", "woman", "wonder", "wood", "wool", "word", "work", "world", "worry", "worth", "wrap", "wreck", "wrestle", "wrist", "write", "wrong", "yard", "year", "yellow", "you", "young", "youth", "zebra", "zero", "zone", "zoo"];
+
+// ============================================================
+// STATE
+// ============================================================
+let generatedPhrases = [];
+let currentShardCount = 1;
+let currentWordCount = 12;
+let displayedCount = 0;
+const PAGE_SIZE = 100;
+
+// ============================================================
+// BIP-39 CORE: Proper entropy + SHA-256 checksum
+// ============================================================
+async function generateMnemonic(wordCount) {
+  const entropyBits = { 12: 128, 18: 192, 24: 256 }[wordCount];
+  const entropyBytes = entropyBits / 8;
+  const checksumBits = entropyBits / 32;
+
+  // 1. Generate cryptographically secure random entropy
+  const entropy = new Uint8Array(entropyBytes);
+  crypto.getRandomValues(entropy);
+
+  // 2. SHA-256 hash for checksum
+  const hashBuffer = await crypto.subtle.digest('SHA-256', entropy);
+  const hashArray = new Uint8Array(hashBuffer);
+
+  // 3. Convert entropy to binary string
+  let bits = '';
+  for (let i = 0; i < entropy.length; i++) {
+    bits += entropy[i].toString(2).padStart(8, '0');
+  }
+
+  // 4. Append checksum bits (first checksumBits of the hash)
+  let hashBits = '';
+  for (let i = 0; i < hashArray.length; i++) {
+    hashBits += hashArray[i].toString(2).padStart(8, '0');
+  }
+  bits += hashBits.slice(0, checksumBits);
+
+  // 5. Split into 11-bit groups and map to words
+  const words = [];
+  for (let i = 0; i < bits.length; i += 11) {
+    const index = parseInt(bits.slice(i, i + 11), 2);
+    words.push(BIP39_WORDLIST[index]);
+  }
+
+  return words.join(' ');
+}
+
+// ============================================================
+// SHARDING
+// ============================================================
+function shardPhrase(phrase, shardCount) {
+  const words = phrase.split(' ');
+  const total = words.length;
+  if (shardCount === 1) return [words];
+
+  const perShard = Math.floor(total / shardCount);
+  const remainder = total % shardCount;
+  const shards = [];
+  let start = 0;
+  for (let i = 0; i < shardCount; i++) {
+    const extra = i < remainder ? 1 : 0;
+    shards.push(words.slice(start, start + perShard + extra));
+    start += perShard + extra;
+  }
+  return shards;
+}
+
+// ============================================================
+// GENERATION
+// ============================================================
+async function generate() {
+  const btn = document.getElementById('generateBtn');
+  const numPhrases = Math.min(100000, Math.max(1, parseInt(document.getElementById('numPhrases').value) || 10));
+  document.getElementById('numPhrases').value = numPhrases;
+  currentShardCount = getToggleValue('shardGroup');
+  currentWordCount = getToggleValue('wordCountGroup');
+  const outputFormat = document.getElementById('outputFormat').value;
+
+  if (currentShardCount === 1 && outputFormat === 'sharded') {
+    showToast('Cannot export shards only with no sharding. Switching to Full.', 'var(--warning)');
+    document.getElementById('outputFormat').value = 'full';
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generating...';
+
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const progressPercent = document.getElementById('progressPercent');
+  progressWrap.classList.add('visible');
+  progressFill.style.width = '0%';
+
+  generatedPhrases = [];
+  const batchSize = Math.min(500, numPhrases);
+  const startTime = performance.now();
+
+  for (let i = 0; i < numPhrases; i += batchSize) {
+    const end = Math.min(i + batchSize, numPhrases);
+    const promises = [];
+    for (let j = i; j < end; j++) {
+      promises.push(generateMnemonic(currentWordCount));
+    }
+    const batch = await Promise.all(promises);
+    generatedPhrases.push(...batch);
+
+    const pct = Math.round((generatedPhrases.length / numPhrases) * 100);
+    progressFill.style.width = pct + '%';
+    progressPercent.textContent = pct + '%';
+    progressLabel.textContent = `Generated ${generatedPhrases.length.toLocaleString()} of ${numPhrases.toLocaleString()}`;
+
+    if (i + batchSize < numPhrases) {
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+
+  const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+  progressLabel.textContent = `Complete — ${numPhrases.toLocaleString()} phrases in ${elapsed}s`;
+  progressFill.style.width = '100%';
+  progressPercent.textContent = '100%';
+
+  btn.disabled = false;
+  btn.innerHTML = '&#9650; Generate Seed Phrases';
+
+  renderOutput();
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+function renderOutput() {
+  const section = document.getElementById('outputSection');
+  section.classList.add('visible');
+
+  const entBits = { 12: 128, 18: 192, 24: 256 }[currentWordCount];
+  document.getElementById('statCount').textContent = generatedPhrases.length.toLocaleString();
+  document.getElementById('statWords').textContent = currentWordCount;
+  document.getElementById('statEntropy').textContent = entBits;
+  document.getElementById('statShards').textContent = currentShardCount === 1 ? 'None' : currentShardCount;
+
+  const shardLabels = document.getElementById('shardLabels');
+  const alphTab = document.querySelector('[data-tab="alpha"]');
+  const muTab = document.querySelector('[data-tab="mu"]');
+  const omegTab = document.querySelector('[data-tab="omega"]');
+
+  if (currentShardCount > 1) {
+    shardLabels.style.display = 'flex';
+    alphTab.style.display = '';
+    omegTab.style.display = '';
+    document.getElementById('muLabel').style.display = currentShardCount === 3 ? '' : 'none';
+    muTab.style.display = currentShardCount === 3 ? '' : 'none';
+  } else {
+    shardLabels.style.display = 'none';
+    alphTab.style.display = 'none';
+    muTab.style.display = 'none';
+    omegTab.style.display = 'none';
+  }
+
+  switchTab('all', document.querySelector('[data-tab="all"]'));
+
+  displayedCount = 0;
+  document.getElementById('seedListAll').innerHTML = '';
+  document.getElementById('seedListAlpha').innerHTML = '';
+  document.getElementById('seedListMu').innerHTML = '';
+  document.getElementById('seedListOmega').innerHTML = '';
+  showMore();
+
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showMore() {
+  const end = Math.min(displayedCount + PAGE_SIZE, generatedPhrases.length);
+
+  for (let i = displayedCount; i < end; i++) {
+    const phrase = generatedPhrases[i];
+    const words = phrase.split(' ');
+    const shards = shardPhrase(phrase, currentShardCount);
+
+    const allItem = document.createElement('div');
+    allItem.className = 'seed-item';
+    let wordHtml = '';
+    for (let s = 0; s < shards.length; s++) {
+      const cls = currentShardCount === 1 ? '' : (s === 0 ? 'alpha' : (s === 1 && currentShardCount === 3 ? 'mu' : 'omega'));
+      for (const w of shards[s]) {
+        wordHtml += `<span class="word ${cls}">${w}</span>`;
+      }
+    }
+    allItem.innerHTML = `<div class="seed-num">Seed #${(i+1).toLocaleString()}</div><div class="seed-words">${wordHtml}</div>`;
+    allItem.onclick = () => copySingle(phrase, i+1);
+    document.getElementById('seedListAll').appendChild(allItem);
+
+    if (currentShardCount > 1) {
+      appendShardItem('seedListAlpha', 'Alpha', shards[0], i, 'alpha');
+      if (currentShardCount === 3) {
+        appendShardItem('seedListMu', 'Mu', shards[1], i, 'mu');
+        appendShardItem('seedListOmega', 'Omega', shards[2], i, 'omega');
+      } else {
+        appendShardItem('seedListOmega', 'Omega', shards[1], i, 'omega');
+      }
+    }
+  }
+
+  displayedCount = end;
+
+  const wrap = document.getElementById('showMoreWrap');
+  if (displayedCount < generatedPhrases.length) {
+    wrap.style.display = '';
+    document.getElementById('showMoreLabel').textContent = `Showing ${displayedCount.toLocaleString()} of ${generatedPhrases.length.toLocaleString()}`;
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function appendShardItem(listId, label, words, index, cls) {
+  const item = document.createElement('div');
+  item.className = 'seed-item';
+  const wordHtml = words.map(w => `<span class="word ${cls}">${w}</span>`).join('');
+  item.innerHTML = `<div class="seed-num">Seed #${(index+1).toLocaleString()} — ${label}</div><div class="seed-words">${wordHtml}</div>`;
+  item.onclick = () => { navigator.clipboard.writeText(words.join(' ')); showToast(`${label} shard #${index+1} copied!`); };
+  document.getElementById(listId).appendChild(item);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(tabId, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportAll() {
+  if (!generatedPhrases.length) return;
+  let text = `Alpine Digital — Seed Phrase Generator\nGenerated: ${new Date().toISOString()}\nWord Count: ${currentWordCount} | Phrases: ${generatedPhrases.length} | Shards: ${currentShardCount}\n${'='.repeat(60)}\n\n`;
+  generatedPhrases.forEach((p, i) => {
+    text += `Seed ${i + 1}: ${p}\n`;
+  });
+  downloadFile('alpine_seeds_all.txt', text);
+  showToast('All seeds exported!');
+}
+
+function exportShards() {
+  if (!generatedPhrases.length || currentShardCount === 1) {
+    showToast('No shards to export (sharding not enabled)', 'var(--warning)');
+    return;
+  }
+
+  let alpha = `Alpine Digital — Alpha Shards\nGenerated: ${new Date().toISOString()}\n${'='.repeat(50)}\n\n`;
+  let omega = `Alpine Digital — Omega Shards\nGenerated: ${new Date().toISOString()}\n${'='.repeat(50)}\n\n`;
+  let mu = currentShardCount === 3 ? `Alpine Digital — Mu Shards\nGenerated: ${new Date().toISOString()}\n${'='.repeat(50)}\n\n` : '';
+
+  generatedPhrases.forEach((p, i) => {
+    const shards = shardPhrase(p, currentShardCount);
+    alpha += `Seed ${i + 1} Alpha: ${shards[0].join(' ')}\n`;
+    if (currentShardCount === 3) {
+      mu += `Seed ${i + 1} Mu: ${shards[1].join(' ')}\n`;
+      omega += `Seed ${i + 1} Omega: ${shards[2].join(' ')}\n`;
+    } else {
+      omega += `Seed ${i + 1} Omega: ${shards[1].join(' ')}\n`;
+    }
+  });
+
+  downloadFile('alpine_alpha_shards.txt', alpha);
+  downloadFile('alpine_omega_shards.txt', omega);
+  if (currentShardCount === 3) downloadFile('alpine_mu_shards.txt', mu);
+  showToast(`${currentShardCount} shard files exported!`);
+}
+
+function downloadFile(name, content) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// COPY
+// ============================================================
+function copyAll() {
+  if (!generatedPhrases.length) return;
+  const text = generatedPhrases.map((p, i) => `Seed ${i + 1}: ${p}`).join('\n');
+  navigator.clipboard.writeText(text);
+  showToast('All phrases copied to clipboard!');
+}
+
+function copySingle(phrase, num) {
+  navigator.clipboard.writeText(phrase);
+  showToast(`Seed #${num} copied!`);
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function getToggleValue(groupId) {
+  const active = document.querySelector(`#${groupId} .toggle-btn.active`);
+  return parseInt(active.dataset.val);
+}
+
+document.querySelectorAll('.toggle-group').forEach(group => {
+  group.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (group.id === 'wordCountGroup') {
+        updateEntropyBar(parseInt(btn.dataset.val));
+      }
+    });
+  });
+});
+
+function updateEntropyBar(wc) {
+  const bar = document.getElementById('entropyBar');
+  const label = document.getElementById('entropyLabel');
+  const csLabel = document.getElementById('checksumLabel');
+  const map = { 12: [128, 4, 'low'], 18: [192, 6, 'med'], 24: [256, 8, 'high'] };
+  const [bits, cs, cls] = map[wc];
+  bar.className = 'entropy-fill ' + cls;
+  label.textContent = bits + '-bit entropy';
+  csLabel.textContent = cs + '-bit checksum';
+}
+
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = color || 'var(--success)';
+  t.style.color = color || 'var(--success)';
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
